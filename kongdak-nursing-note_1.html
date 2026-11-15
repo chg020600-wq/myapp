@@ -74,6 +74,8 @@ textarea,input,select{width:100%;font:inherit;color:var(--ink);background:#fff;b
 .hint{display:grid}
 .hint>span{grid-area:1/1}
 .hint>.h{visibility:hidden}
+.cr{display:flex;align-items:center;gap:10px;font-weight:700;margin:6px 0;min-height:40px}
+.cr input{width:22px;height:22px;padding:0;margin:0;flex:none;accent-color:#7B5FD6}
 @keyframes pop{from{opacity:0;transform:scale(.5)}}
 @keyframes fade{from{opacity:0}}
 @keyframes inR{from{opacity:0;transform:translateX(28px)}}
@@ -131,10 +133,7 @@ label{display:block;font-weight:700;margin:10px 0}
 <input type="file" id="fp" accept=".pdf,application/pdf" multiple hidden>
 <input type="file" id="fi" accept=".json,application/json" hidden>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
+// Firebase는 앱이 먼저 뜬 뒤에 따로 불러와요. 연결이 안 돼도 앱은 이 기기 저장으로 그대로 작동해요.
 const firebaseConfig = {
   apiKey: "AIzaSyDwNr7S0AmBQIOc0wgTuwuM475kpTPeUwc",
   authDomain: "naye-90033.firebaseapp.com",
@@ -144,12 +143,9 @@ const firebaseConfig = {
   appId: "1:676463113164:web:bfb881d71353aac8442369",
   measurementId: "G-H1R5V54G5H"
 };
-const fbApp = initializeApp(firebaseConfig);
-const auth = getAuth(fbApp);
-const db = getFirestore(fbApp);
-const provider = new GoogleAuthProvider();
+let initializeApp,getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged,getFirestore,doc,setDoc,onSnapshot,fbApp,auth=null,db=null,provider=null,fbReady=false;
 
-let fbUser = null, unsubDb = null, isRemoteUpdate = false;
+let fbUser = null, unsubDb = null, isRemoteUpdate = false, lastJson = '', pendingRemote = null;
 
 const $=s=>document.querySelector(s),
 esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
@@ -171,35 +167,61 @@ function load(){try{const s=localStorage.getItem(KEY);if(s){const d=JSON.parse(s
 function save(){
   try{localStorage.setItem(KEY,JSON.stringify(D));bad=0}catch(e){bad=1}
   if(fbUser && !isRemoteUpdate){
-    setDoc(doc(db,'users',fbUser.uid,'apps','nursing'),{data:JSON.stringify(D),updatedAt:Date.now()}).catch(()=>bad=1);
+    const j=JSON.stringify(D);
+    if(j!==lastJson){
+      lastJson=j;pendingRemote=null;
+      setDoc(doc(db,'users',fbUser.uid,'apps','nursing'),{data:j,updatedAt:Date.now()}).catch(()=>{bad=1});
+    }
   }
   ['#st','#st2'].forEach(q=>{const s=$(q);if(s)s.textContent=bad?'저장할 수 없어요':(fbUser?'클라우드 저장됨':'저장됨')});
 }
 
-onAuthStateChanged(auth, user => {
-  fbUser = user;
-  if(unsubDb){ unsubDb(); unsubDb = null; }
-  if(user){
-    const ref = doc(db,'users',user.uid,'apps','nursing');
-    unsubDb = onSnapshot(ref, snap => {
-      if(snap.exists() && snap.data().data){
-        try{
-          const remoteD = JSON.parse(snap.data().data);
-          if(remoteD && Array.isArray(remoteD.subjects)){
-            isRemoteUpdate = true;
-            D = remoteD;
-            localStorage.setItem(KEY, JSON.stringify(D));
-            render();
-            isRemoteUpdate = false;
-          }
-        }catch(e){}
-      } else {
-        save();
-      }
-    });
-  }
-  render();
-});
+const typing=()=>/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||'')||!!document.querySelector('dialog[open]')||!!rd;
+function fixNav(){
+  if(nav.s&&!D.subjects.some(x=>x.id==nav.s))nav={v:'home'};
+  else if(nav.u&&!S().units.some(x=>x.id==nav.u))nav={v:'units',s:nav.s};
+  sel=null;
+}
+function applyRemote(txt){
+  if(typing()){pendingRemote=txt;return}   // 글을 쓰는 중이면 끝날 때까지 기다려요
+  try{
+    const r=JSON.parse(txt);
+    if(!r||!Array.isArray(r.subjects))return;
+    pendingRemote=null;lastJson=txt;
+    isRemoteUpdate=true;D=r;
+    try{localStorage.setItem(KEY,txt)}catch(e){}
+    fixNav();render();
+  }catch(e){}
+  isRemoteUpdate=false;
+}
+setInterval(()=>{if(pendingRemote&&!typing())applyRemote(pendingRemote)},1500);
+function watchAuth(){
+  onAuthStateChanged(auth, user => {
+    fbUser = user;
+    if(unsubDb){ unsubDb(); unsubDb = null; }
+    if(user){
+      const ref = doc(db,'users',user.uid,'apps','nursing');
+      unsubDb = onSnapshot(ref, snap => {
+        if(snap.metadata.hasPendingWrites) return;            // 내가 방금 저장한 것의 알림은 무시
+        const txt = snap.exists() ? snap.data().data : null;
+        if(txt){ if(txt!==lastJson) applyRemote(txt); }
+        else save();                                           // 클라우드가 비어 있으면 이 기기 내용을 올려요
+      }, ()=>{});
+    }
+    render();
+  });
+}
+async function initFirebase(){
+  try{
+    const B='https://www.gstatic.com/firebasejs/11.0.1/';
+    const [a,u,f]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-auth.js'),import(B+'firebase-firestore.js')]);
+    ({initializeApp}=a);
+    ({getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}=u);
+    ({getFirestore,doc,setDoc,onSnapshot}=f);
+    fbApp=initializeApp(firebaseConfig);auth=getAuth(fbApp);db=getFirestore(fbApp);provider=new GoogleAuthProvider();
+    fbReady=true;watchAuth();
+  }catch(e){fbReady=false;render()}
+}
 
 const S=()=>D.subjects.find(x=>x.id==nav.s),U=()=>S().units.find(x=>x.id==nav.u);
 const ic=(n,c='ic')=>`<svg class="${c}" aria-hidden="true"><use href="#${n}"/></svg>`;
@@ -210,8 +232,8 @@ const acts=(a,id)=>`<div class="acts"><button class="btn s" data-a="edit${a}" da
 function home(){
   const authBtn = fbUser
     ? `<button class="btn s on" data-a="logout" title="${esc(fbUser.email)}">동기화 중</button>`
-    : `<button class="btn s" style="background:var(--ye)" data-a="login">로그인</button>`;
-  return (sel?selBar(64)+hint('오늘은 어떤 과목을 볼까요? 과목을 길게 누르면 선택할 수 있어요.','과목을 눌러 선택하거나 해제해요.',1):`<div class="top">${ic('cloud','ic big')}<h1>콩닥 간호노트</h1>${authBtn}<button class="btn s" data-a="ld">불러오기</button><button class="btn s" data-a="set">설정</button></div>${hint('오늘은 어떤 과목을 볼까요? 과목을 길게 누르면 선택할 수 있어요.','과목을 눌러 선택하거나 해제해요.',0)}`)+`<div class="grid${sel?' selm':''}">${D.subjects.map(s=>`<button class="box row sc${sel&&sel.includes(s.id)?' on':''}" style="background:${s.c}" data-a="${sel?'tog':'openS'}" data-id="${s.id}" data-ro="S"><i class="ck"></i>${ic(s.i)}<span><b class="big">${esc(s.name)}</b><br><small>단원 ${s.units.length}개</small></span></button>`).join('')}</div>${sel?'':'<button class="btn" data-a="addS">+ 과목 추가</button>'}<div class="deco">${['star','heart','pill','steth','syringe'].map(n=>ic(n,'ic sm')).join('')}</div>`;
+    : (fbReady?`<button class="btn s" style="background:var(--ye)" data-a="login">로그인</button>`:'');
+  return (sel?selBar(64)+hint('오늘은 어떤 과목을 볼까요? 과목을 길게 누르면 선택할 수 있어요.','과목을 눌러 선택하거나 해제해요.',1):`<div class="top">${ic('cloud','ic big')}<h1>콩닥 간호노트</h1>${authBtn}<button class="btn s" data-a="ld">불러오기</button><button class="btn s" data-a="set">설정</button></div>${hint('오늘은 어떤 과목을 볼까요? 과목을 길게 누르면 선택할 수 있어요.','과목을 눌러 선택하거나 해제해요.',0)}`)+`<div class="grid${sel?' selm':''}">${D.subjects.map(s=>`<button class="box row sc${sel&&sel.includes(s.id)?' on':''}" style="background:${s.c}" data-a="${sel?'tog':'openS'}" data-id="${s.id}" data-ro="S"><i class="ck"></i>${ic(s.i)}<span><b class="big">${esc(s.name)}</b><br><small>단원 ${s.units.length}개</small></span></button>`).join('')}</div>${sel?'':'<div class="acts"><button class="btn" style="background:var(--ye)" data-a="hq">과목 퀴즈</button><button class="btn" data-a="addS">+ 과목 추가</button></div>'}<div class="deco">${['star','heart','pill','steth','syringe'].map(n=>ic(n,'ic sm')).join('')}</div>`;
 }
 
 function units(){const s=S(),sb='<div class="acts"><button class="btn s" data-a="editS">과목 이름 바꾸기</button><button class="btn s d" data-a="delS">과목 삭제</button></div>',hn=m=>s.units.length?hint('단원을 길게 누르면 선택할 수 있어요.','단원을 눌러 선택하거나 해제해요.',m):'';return (sel?selBar(44)+'<div class="acts"><button class="btn s" data-a="selA">모두 선택</button><button class="btn s" data-a="selZ">모두 해제</button></div>'+hn(1):bar(s.name,1)+sb+hn(0))+(s.units.length?`<div class="list${sel?' selm':''}">${s.units.map(u=>`<button class="box row sc${sel&&sel.includes(u.id)?' on':''}" style="background:${s.c}" data-a="${sel?'tog':'openU'}" data-id="${u.id}" data-ro="U"><i class="ck"></i><span><b class="big">${esc(u.name)}</b><br><small>카드 ${u.cards.length}개, 문제 ${u.quiz.length}개</small></span></button>`).join('')}</div>`:empty('아직 단원이 없어요. 첫 단원을 만들어 볼까요?'))+(sel?'':`<button class="btn" data-a="addU">+ 단원 추가</button>`)}
@@ -227,7 +249,7 @@ return `${u.cards.length?'<div class="acts"><button class="btn" style="backgroun
 function quizV(u){return `<div class="acts"><button class="btn" style="background:var(--ye)" data-a="auto">랜덤 퀴즈</button>${u.quiz.length?'<button class="btn" style="background:var(--ok)" data-a="play">내 문제 풀기</button>':''}<button class="btn s" data-a="addQ">+ 문제 추가</button></div>`+(u.quiz.length?`<div class="list">${u.quiz.map((q,i)=>`<div class="box" data-ro="Q" data-id="${q.id}"><b>${i+1}. ${esc(q.question)}</b>${acts('Q',q.id)}</div>`).join('')}</div>`:empty('5지선다 문제를 만들어 퀴즈로 확인해요.'))}
 
 const W=u=>u.wrong||(u.wrong=[]);
-function noteW(q,mine){const w=W(U()),ex=w.find(x=>x.question==q.question),f={question:q.question,choices:q.choices.slice(),answer:q.answer,explanation:q.explanation||'',mine};
+function noteW(q,mine){const uu=q.src?((D.subjects.find(x=>x.id==q.src[0])||{units:[]}).units.find(x=>x.id==q.src[1])):U();if(!uu)return;const w=W(uu),ex=w.find(x=>x.question==q.question),f={question:q.question,choices:q.choices.slice(),answer:q.answer,explanation:q.explanation||'',mine};
 if(ex)Object.assign(ex,f,{count:ex.count+1,ok:0});else w.push({id:uid(),count:1,ok:0,...f})}
 function wrV(u){const w=W(u),a=w.filter(x=>!x.ok),b=w.filter(x=>x.ok),
 it=x=>`<div class="box"><p class="q">${esc(x.question)}</p><p>정답: <b>${esc(x.choices[x.answer])}</b></p>${x.ok?'':`<p class="sub">${x.count}번 틀렸어요</p>`}${x.explanation?`<p class="sub">${esc(x.explanation)}</p>`:''}<div class="acts">${x.ok?`<button class="btn s" data-a="redo" data-id="${x.id}">다시 오답으로</button>`:''}<button class="btn s d" data-a="delW" data-id="${x.id}">삭제</button></div></div>`;
@@ -237,7 +259,7 @@ if(qz.i>=n){const all=qz.score==n;return bar('퀴즈 결과',1)+`<div class="box
 const q=qz.qs[qz.i],p=qz.pick,ok=p==q.answer;
 return bar(`문제 ${qz.i+1} / ${n}`,1)+`<div class="box"><p class="q">${esc(q.question)}</p>${q.choices.map((c,i)=>`<button class="ch${p!=null?(i==q.answer?' ok':i==p?' no':''):''}" ${p==null?`data-a="pick" data-id="${i}"`:'disabled'}>${NUM[i]} ${esc(c)}</button>`).join('')}</div>`+(p!=null?`<div class="box fb2">${ic(ok?'star':'cloud')}<div><b>${ok?'맞았어요!':'아쉬워요. 정답은 '+NUM[q.answer]+'번이에요.'}</b>${q.explanation?`<p>${esc(q.explanation)}</p>`:''}${!ok?'<p class="sub">오답노트에 담았어요.</p>':qz.mode=='w'?'<p class="sub">극복한 문제로 옮겼어요.</p>':''}</div></div><button class="btn" data-a="next">${qz.i+1<n?'다음 문제':'결과 보기'}</button>`:'')}
 
-const setV=()=>bar('설정',1)+`<div class="box"><b>클라우드 동기화</b><p class="sub">${fbUser?`현재 <b>${esc(fbUser.email)}</b> 계정으로 실시간 동기화 중이에요.`:'Google 로그인을 하면 태블릿과 PC에서 내용이 자동으로 동기화돼요.'}</p><div class="acts">${fbUser?'<button class="btn s d" data-a="logout">로그아웃</button>':'<button class="btn" data-a="login">Google 로그인</button>'}</div></div><div class="box" style="margin-top:12px"><b>내 내용 백업</b><p class="sub">파일로 저장해 두면 브라우저 데이터가 사라져도 다시 불러올 수 있어요.</p><div class="acts"><button class="btn" data-a="exp">내보내기</button><button class="btn s" data-a="imp">가져오기</button></div></div><div class="box" style="margin-top:12px"><b>전체 삭제</b><p class="sub">모든 과목, 요약, 카드, 퀴즈를 지워요.</p><button class="btn d" data-a="rst">전체 삭제</button></div>`;
+const setV=()=>bar('설정',1)+`<div class="box"><b>클라우드 동기화</b><p class="sub">${fbUser?`현재 <b>${esc(fbUser.email)}</b> 계정으로 실시간 동기화 중이에요.`:'Google 로그인을 하면 태블릿과 PC에서 내용이 자동으로 동기화돼요.'}</p><div class="acts">${fbUser?'<button class="btn s d" data-a="logout">로그아웃</button>':(fbReady?'<button class="btn" data-a="login">Google 로그인</button>':'<p class="sub">동기화 기능을 불러오는 중이거나 인터넷에 연결되지 않았어요.</p>')}</div></div><div class="box" style="margin-top:12px"><b>내 내용 백업</b><p class="sub">파일로 저장해 두면 브라우저 데이터가 사라져도 다시 불러올 수 있어요.</p><div class="acts"><button class="btn" data-a="exp">내보내기</button><button class="btn s" data-a="imp">가져오기</button></div></div><div class="box" style="margin-top:12px"><b>전체 삭제</b><p class="sub">모든 과목, 요약, 카드, 퀴즈를 지워요.</p><button class="btn d" data-a="rst">전체 삭제</button></div>`;
 
 let pdfT=null,sd=null,dr=null,sel=null,lt=null,lp=null,lpF=0,skipT=0,dir='',rd=null,fl=new Set(),rs='';
 const hint=(a,b,m)=>`<p class="sub hint"><span${m?' class="h"':''}>${a}</span><span${m?'':' class="h"'}>${b}</span></p>`;
@@ -296,7 +318,24 @@ if(!r)return info('이 기기에서 파일을 찾을 수 없어요. 다시 올�
 const p=$('#pv'),u=URL.createObjectURL(new Blob([r.blob],{type:'application/pdf'})),m=(U().pdfs||[]).find(x=>x.id==id);
 p.innerHTML=`<div class="acts" style="margin:0 0 8px;align-items:center"><b style="flex:1;word-break:break-all">${esc(m?m.name:'PDF')}</b><a class="btn s" style="display:inline-flex;align-items:center;text-decoration:none" href="${u}" target="_blank" rel="noopener">새 창으로 열기</a><button class="btn s" data-a="pvx">닫기</button></div><iframe src="${u}" title="PDF"></iframe>`;
 p.onclose=()=>{URL.revokeObjectURL(u);p.innerHTML=''};p.showModal()}
-function render(){const v=nav.v,ap=$('#app'),y0=scrollY,sg=[nav.v,nav.s,nav.u,nav.tab,nav.tab=='play'?qz.i:nav.tab=='study'?sd.i:''].join();ap.classList.remove('inR','inL');void ap.offsetWidth;if(dir)ap.classList.add(dir);dir='';$('#app').innerHTML=(bad?'<p class="warn">저장 오류가 발생했어요. 네트워크나 권한을 확인해 주세요.</p>':'')+(v=='home'?home():v=='units'?units():v=='unit'?unitV():v=='imp'?impV():setV());scrollTo(0,sg==rs?y0:0);rs=sg;const t=$('#sm');if(t)grow(t)}
+function hqCards(ids,nw){return D.subjects.filter(s=>ids.includes(s.id)).flatMap(s=>s.units.flatMap(u=>u.cards.filter(c=>!nw||!c.known).map(c=>({c,s,u}))))}
+function hqQ(ids,nw,k){const items=hqCards(ids,nw),pool=hqCards(ids,false).map(x=>x.c);
+return shuf(items).slice(0,k).map(({c,s,u})=>{const rev=Math.random()<.5,key=rev?'term':'meaning',seen=new Set([c[key]]),ds=shuf(pool).filter(x=>!seen.has(x[key])&&seen.add(x[key])).slice(0,4),ch=shuf([c,...ds]);
+return{question:rev?`다음 뜻에 맞는 용어는? ${c.meaning}`:`${c.term}의 뜻은?`,choices:ch.map(x=>x[key]),answer:ch.indexOf(c),explanation:`${c.term}: ${c.meaning}`,src:[s.id,u.id]}}).filter(q=>q.choices.length==5)}
+function stH(qs,g){qz={qs,gen:g,mode:'h',i:0,score:0,wrong:[],pick:null};nav={v:'hq'};dir='inR';render()}
+function hqOpen(){const d=$('#dg');
+d.innerHTML=`<form novalidate><h2>과목으로 문제 만들기</h2><p class="sub">고른 과목의 카드로 5지선다 문제를 만들어요. 틀린 문제는 그 카드가 있는 단원의 오답노트에 담겨요.</p>${D.subjects.map(s=>`<label class="cr"><input type="checkbox" name="s" value="${s.id}"><span>${esc(s.name)} <small>카드 ${s.units.reduce((n,u)=>n+u.cards.length,0)}개</small></span></label>`).join('')}<label class="cr"><input type="checkbox" name="nw"><span>아직 안 외운 카드만</span></label><div class="acts">${[5,10,20].map(k=>`<button type="button" class="btn s" data-a="hqn" data-id="${k}">${k}문제</button>`).join('')}<button type="button" class="btn s" data-a="hqn" data-id="all">전체</button></div><label>문제 수<input name="k" type="number" min="1" value="10" inputmode="numeric"></label><p class="sub" id="hqi"></p><div class="acts"><button type="button" class="btn s" data-a="cx">취소</button><button class="btn">시작</button></div></form>`;
+const f=d.querySelector('form'),ids=()=>[...f.querySelectorAll('[name=s]:checked')].map(x=>x.value),
+upd=()=>{const n=hqCards(ids(),f.nw.checked).length;f.dataset.n=n;f.k.max=n||1;$('#hqi').textContent=ids().length?`고른 카드 ${n}개까지 만들 수 있어요.`:'과목을 하나 이상 골라 주세요.'};
+f.addEventListener('change',upd);upd();
+f.onsubmit=e=>{e.preventDefault();const n=hqCards(ids(),f.nw.checked).length;
+if(!ids().length)return $('#hqi').textContent='과목을 하나 이상 골라 주세요.';
+if(!n)return $('#hqi').textContent='고른 과목에 카드가 없어요.';
+const k=Math.max(1,Math.min(n,+f.k.value||1)),nw=f.nw.checked,sel2=ids(),g=()=>hqQ(sel2,nw,k),qs=g();
+if(!qs.length)return $('#hqi').textContent='문제를 만들 수 없어요. 서로 다른 뜻의 카드가 5개 이상 필요해요.';
+d.close();stH(qs,g)};
+d.showModal()}
+function render(){const v=nav.v,ap=$('#app'),y0=scrollY,sg=[nav.v,nav.s,nav.u,nav.tab,nav.tab=='play'||nav.v=='hq'?qz.i:nav.tab=='study'?sd.i:''].join();ap.classList.remove('inR','inL');void ap.offsetWidth;if(dir)ap.classList.add(dir);dir='';$('#app').innerHTML=(bad?'<p class="warn">저장 오류가 발생했어요. 네트워크나 권한을 확인해 주세요.</p>':'')+(v=='home'?home():v=='units'?units():v=='unit'?unitV():v=='hq'?play():v=='imp'?impV():setV());scrollTo(0,sg==rs?y0:0);rs=sg;const t=$('#sm');if(t)grow(t)}
 
 function ask(title,fs,vals,ok){const d=$('#dg');
 d.innerHTML=`<form><h2>${title}</h2>${fs.map(f=>`<label>${f.l}${f.t=='a'?`<textarea name="${f.k}" rows="3" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"${f.r?' required':''}>${esc(vals[f.k])}</textarea>`:f.t=='s'?`<select name="${f.k}">${f.o.map((o,i)=>`<option value="${i}"${vals[f.k]==i?' selected':''}>${o}</option>`).join('')}</select>`:`<input name="${f.k}" value="${esc(vals[f.k])}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"${f.r?' required':''}>`}</label>`).join('')}<div class="acts"><button type="button" class="btn s" data-a="cx">취소</button><button class="btn">저장</button></div></form>`;
@@ -317,8 +356,8 @@ ds=shuf(all).filter(x=>!seen.has(x[k])&&seen.add(x[k])).slice(0,4),ch=shuf([c,..
 return{question:rev?`다음 뜻에 맞는 용어는? ${c.meaning}`:`${c.term}의 뜻은?`,choices:ch.map(x=>x[k]),answer:ch.indexOf(c),explanation:`${c.term}: ${c.meaning}`}}).filter(q=>q.choices.length==5)}
 function info(m){const d=$('#dg');d.innerHTML=`<form><h2>${m}</h2><div class="acts"><button class="btn">확인</button></div></form>`;d.querySelector('form').onsubmit=e=>{e.preventDefault();d.close()};d.showModal()}
 const A={
-login(){signInWithPopup(auth,provider).catch(e=>info('로그인 실패: '+e.message))},
-logout(){sure('클라우드 동기화를 끄고 로그아웃할까요?',()=>signOut(auth),'로그아웃')},
+login(){if(!fbReady)return info('로그인 기능을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.');signInWithPopup(auth,provider).catch(e=>info('로그인 실패: '+e.message))},
+logout(){sure('클라우드 동기화를 끄고 로그아웃할까요?',()=>{if(auth)signOut(auth)},'로그아웃')},
 set(){dir='inR';nav={v:'set'};render()},
 openS(d){dir='inR';nav={v:'units',s:d.id};render()},
 openU(d){fl.clear();dir='inR';nav={v:'unit',s:nav.s,u:d.id,tab:'card'};render()},
@@ -347,6 +386,8 @@ sdk(){fly(true)},
 sdn(){fly(false)},
 sdu(){if(!sd||!sd.i)return;sd.i--;const c=U().cards.find(x=>x.id==sd.ids[sd.i]);if(c)c.known=sd.prev[sd.i];sd.res.length=sd.i;save();render()},
 det(){const p=$('#pv');p.onclose=()=>{p.innerHTML='';const t=$('#sm');if(t){t.value=U().summary;grow(t)}};p.innerHTML=`<div class="acts" style="margin:0 0 8px;align-items:center"><b style="flex:1;word-break:break-all">${esc(U().name)} 요약</b><span class="sub" id="st2">${fbUser?'클라우드 저장됨':'저장됨'}</span><button class="btn s" data-a="pvx">닫기</button></div><textarea id="sm2" class="sm2" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="요약 자세히 보기">${esc(U().summary)}</textarea>`;p.showModal()},
+hq(){hqOpen()},
+hqn(d,b){const f=b.closest('form'),n=+f.dataset.n||1;f.k.value=Math.min(d.id=='all'?n:+d.id,n);},
 selA(){if(!sel)return;sel=(nav.v=='units'?S().units:D.subjects).map(x=>x.id);selSync()},
 selZ(){if(!sel)return;sel=[];selSync()},
 tog(d,b){if(!sel)return;const i=sel.indexOf(d.id);if(i<0)sel.push(d.id);else sel.splice(i,1);b.classList.toggle('on',i<0);$('#selN').textContent=sel.length+'개 선택';const r=$('[data-a=selR]'),x=$('[data-a=selD]');if(r)r.disabled=sel.length!=1;if(x)x.disabled=!sel.length},
@@ -369,7 +410,7 @@ go(d){$('#dg').close();const k=Math.max(1,Math.min(U().cards.length,+d.id||1)),g
 pick(d){const q=qz.qs[qz.i];qz.pick=+d.id;if(qz.pick==q.answer){qz.score++;if(qz.mode=='w'){const w=W(U()).find(x=>x.id==q.id);if(w)w.ok=1}}else{qz.wrong.push(q);noteW(q,qz.pick)}save();render()},
 next(){qz.i++;qz.pick=null;render()},
 retry(){st(qz.wrong,qz.gen,qz.mode)},
-again(){const g=qz.gen,qs=g();if(!qs.length){nav.tab='wr';return render()}st(qs,g,qz.mode)},
+again(){const g=qz.gen,qs=g();if(!qs.length){if(nav.v=='hq')nav={v:'home'};else nav.tab='wr';return render()}st(qs,g,qz.mode)},
 exp(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D)],{type:'application/json'}));a.download='kongdak-note.json';a.click()},
 imp(){$('#fi').click()},
 rst(){sure('모든 내용을 지울까요? 되돌릴 수 없어요.',()=>{rmPdf(D.subjects.flatMap(s=>s.units));D=seed();nav={v:'home'};fin()},'네, 전부 지울게요')}
@@ -427,6 +468,7 @@ document.addEventListener('contextmenu',e=>{if(rok()&&e.target.closest('[data-ro
 $('#fcsv').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)doCsv(f)};
 $('#fp').onchange=e=>{const fl=[...e.target.files];e.target.value='';if(fl.length&&pdfT)addPdf(fl,pdfT.s,pdfT.u)};
 save();render();
+initFirebase();
 </script>
 </body>
 </html>
