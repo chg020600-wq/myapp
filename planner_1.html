@@ -77,27 +77,77 @@ button{touch-action:manipulation}
 .ib,.add select,.add input,.add button{min-height:44px}
 .add input,.add select{font-size:16px}
 @media (max-width:520px){.wrap{padding:14px 12px 40px}.bar{flex-direction:column;align-items:stretch}.tabs button{flex:1;min-height:40px}.nav{justify-content:space-between}.nav b{flex:1;min-width:0}.pick{flex:1;min-width:0}.grid{gap:4px}.cell{min-height:56px;padding:4px;border-radius:10px}.cell b{font-size:14px}.panel{padding:12px}.chk{width:20px;height:20px}.del{padding:10px 6px}.add input{flex:1 1 100%}.add select{flex:1}.add button{flex:1}}
+
+/* ===== 루틴 ===== */
+.rstrip{display:flex;gap:6px}
+.rd{flex:1;min-height:62px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;padding:6px 0}
+.rd small{color:var(--mute);font-size:11px}.rd b{font-size:16px}
+.rd i{width:6px;height:6px;border-radius:50%;background:transparent}
+.rd i.some{background:var(--acc);opacity:.5}.rd i.all{background:var(--acc)}
+.rd.today{background:var(--today)}.rd.fut{opacity:.6}
+.rd.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset}
+.rhead{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-top:12px}
+.rhead b{display:block;font:700 17px/1.3 "Gowun Batang",serif}
+.rhead span{color:var(--mute);font-size:13px}
+.ring{--p:0;width:56px;height:56px;border-radius:50%;background:conic-gradient(var(--acc) calc(var(--p)*1%),var(--accs) 0);display:grid;place-items:center;position:relative;flex:none}
+.ring::before{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--card)}
+.rhead .ring span{position:relative;font-size:12px;font-weight:700;color:var(--ink)}
+.rsec{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 8px}
+.rsec b{font-size:15px}
+.rlink{border:0;background:none;color:var(--acc);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;padding:8px}
+.rlist{display:grid;gap:8px}
+.rrow{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--rc);border-radius:16px;padding:10px 14px 10px 10px;min-height:66px}
+.rchk{width:44px;height:44px;border-radius:50%;border:2.5px solid var(--rc);background:none;cursor:pointer;padding:0;position:relative;flex:none}
+.rchk::after{content:"";position:absolute;left:34%;top:16%;width:30%;height:52%;border:solid #2b2640;border-width:0 3px 3px 0;transform:rotate(45deg) scale(0)}
+.rrow.on .rchk{background:var(--rc)}.rrow.on .rchk::after{transform:rotate(45deg) scale(1)}
+.rchk:disabled,.rc:disabled{opacity:.35;cursor:default}
+.rtx{flex:1;min-width:0}.rtx b{display:block;font-weight:700;word-break:break-word}
+.rtx small{color:var(--mute);font-size:12px}
+.rrow.on .rtx b{color:var(--mute);text-decoration:line-through}
+.rdel{border:1px solid var(--line);background:none;color:var(--mute);border-radius:10px;padding:8px 12px;font-family:inherit;font-size:13px;cursor:pointer;min-height:40px}
+.rempty{background:var(--card);border:1px dashed var(--line);border-radius:16px;padding:18px;text-align:center;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chips button{border:1px solid var(--line);background:var(--accs);color:var(--ink);border-radius:99px;padding:8px 14px;min-height:38px;font-size:13px;font-family:inherit;cursor:pointer}
+.rgrid{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--card);border:1px solid var(--line);border-radius:16px}
+.rgrid table{border-collapse:separate;border-spacing:0}
+.rgrid th,.rgrid td{padding:0;text-align:center;height:38px}
+.rgrid thead th{min-width:34px;width:34px;font-size:11px;font-weight:500;color:var(--mute);border-bottom:1px solid var(--line)}
+.rgrid thead th.su{color:var(--c1)}.rgrid thead th.sa{color:var(--c0)}
+.rgrid thead th.t{color:var(--acc);font-weight:700}
+.rgrid .sd{background:var(--accs)}
+.rgrid .rn{position:sticky;left:0;z-index:1;background:var(--card);min-width:96px;max-width:96px;width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;padding:0 8px;font-size:13px;font-weight:500;color:var(--ink);border-right:1px solid var(--line);border-left:4px solid var(--rc,transparent)}
+.rgrid thead .rn{border-left-color:transparent}
+.rc{width:26px;height:26px;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);cursor:pointer;padding:0;vertical-align:middle}
+.rc.on{background:var(--rc);border-color:var(--rc)}
+.rgrid.wk table{width:100%;table-layout:fixed}
+.rgrid.wk thead th{min-width:0;width:auto;line-height:1.2;padding:4px 0;font-size:12px}
+.rgrid.wk thead th small{display:block;font-size:10px;font-weight:500}
+.rgrid.wk .rn{width:84px;min-width:84px;max-width:84px}
+.rgrid.wk thead th.tot{width:46px}
+.rgrid .tot{font-size:12px;color:var(--mute)}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.pop{animation:pop .25s}
 </style>
 </head>
 <body>
 <div class="wrap">
 <div class="top"><h1>나의 플래너</h1><button id="authbtn" class="sync-pill">로그인</button><button id="th" class="gb" aria-label="화면 모드 바꾸기"></button><button id="gear" class="gb" aria-label="설정" title="설정" aria-expanded="false">⚙</button></div>
 <section id="set" class="panel" hidden><h2>설정</h2>
-<div class="srow"><b>클라우드 동기화</b><p id="authdesc">Google 로그인을 하면 기기 간 할 일이 실시간으로 동기화돼요.</p><button class="pb" id="authsetbtn">Google 로그인</button></div>
+<div class="srow"><b>클라우드 동기화</b><p id="authdesc">위쪽 "로그인" 버튼으로 Google 로그인을 하면 기기 간 할 일이 실시간으로 동기화돼요.</p></div>
 <div class="srow"><b>백업 내보내기</b><p>할 일 전체를 파일로 저장해요. (JSON은 컴퓨터가 읽는 글자 파일이에요)</p><button class="pb" id="exp">파일로 저장</button></div>
 <div class="srow"><b>백업 불러오기</b><p>저장해 둔 파일을 고르면, 지금 할 일을 그 내용으로 바꿀 수 있어요.</p><button class="pb ghost" id="imp">파일 고르기</button><input type="file" id="impf" accept=".json,application/json" hidden></div>
 <div id="cf" class="srow" hidden><button class="pb" id="cfy">이 내용으로 바꾸기</button> <button class="pb ghost" id="cfn">취소</button></div>
 <div id="fb" class="srow" hidden><p>파일 저장이 안 될 때는 아래 글자를 모두 복사해서 메모 앱에 붙여 넣어 보관하세요.</p><textarea id="fbt" readonly rows="4" aria-label="백업 내용"></textarea><button class="pb ghost" id="cp">복사</button></div>
 <p id="smsg" class="empty" role="status"></p></section>
 <div class="bar">
-<div class="tabs" role="group" aria-label="보기 선택"><button data-act="view" data-v="month">월간</button><button data-act="view" data-v="week">주간</button></div>
+<div class="tabs" role="group" aria-label="보기 선택"><button data-act="view" data-v="month">월간</button><button data-act="view" data-v="week">주간</button><button data-act="view" data-v="routine">루틴</button></div>
 <div class="nav"><button class="ib" data-act="prev" aria-label="이전">‹</button><label class="pick"><b id="lab"></b><input type="date" id="dp" aria-label="날짜 선택"></label><button class="ib" data-act="next" aria-label="다음">›</button><button class="ib" data-act="today">오늘</button></div>
 </div>
 <div id="view"></div>
 </div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -131,55 +181,101 @@ function save(){
 function updateAuthUI(){
   var ab = document.getElementById('authbtn');
   var ad = document.getElementById('authdesc');
-  var asb = document.getElementById('authsetbtn');
   if(fbUser){
     ab.textContent = '동기화 중';
     ab.classList.add('on');
-    ad.textContent = fbUser.email + ' 계정으로 실시간 동기화 중이에요.';
-    asb.textContent = '로그아웃';
-    asb.classList.add('ghost');
+    ad.textContent = fbUser.email + ' 계정으로 실시간 동기화 중이에요. 로그아웃은 위쪽 "동기화 중" 버튼을 누르세요.';
   } else {
     ab.textContent = '로그인';
     ab.classList.remove('on');
-    ad.textContent = 'Google 로그인을 하면 기기 간 할 일이 실시간으로 동기화돼요.';
-    asb.textContent = 'Google 로그인';
-    asb.classList.remove('ghost');
+    ad.textContent = '위쪽 "로그인" 버튼으로 Google 로그인을 하면 기기 간 할 일이 실시간으로 동기화돼요.';
   }
 }
 
+var INAPP=/KAKAOTALK|NAVER\(|Instagram|FBAN|FBAV|\bLine\//i;
 function toggleAuth(){
   if(fbUser){
     if(confirm('로그아웃할까요?')) signOut(auth);
-  } else {
-    signInWithPopup(auth, provider).catch(function(e){ alert('로그인 실패: ' + e.message); });
+    return;
+  }
+  if(INAPP.test(navigator.userAgent)){
+    alert('카카오톡·네이버 같은 앱 안의 브라우저에서는 구글 로그인이 막혀요. 크롬이나 사파리로 열어 주세요.');
+    return;
+  }
+  signInWithPopup(auth, provider).catch(function(e){
+    var c = (e && e.code) || '';
+    if(c==='auth/popup-closed-by-user' || c==='auth/cancelled-popup-request') return;
+    if(c==='auth/popup-blocked' || c==='auth/operation-not-supported-in-this-environment'){
+      signInWithRedirect(auth, provider).catch(function(e2){ alert('로그인 실패: ' + e2.message); });
+      return;
+    }
+    alert('로그인 실패: ' + e.message);
+  });
+}
+getRedirectResult(auth).catch(function(e){ if(e && e.code && e.code!=='auth/no-auth-event') alert('로그인 실패: ' + e.message); });
+document.getElementById('authbtn').addEventListener('click', toggleAuth);
+
+var firstSnap = true;
+function mergeData(remote, local){
+  var out = {};
+  Object.keys(remote).forEach(function(k){ out[k] = remote[k].map(function(x){ return {t:x.t, c:x.c, d:x.d}; }); });
+  Object.keys(local).forEach(function(k){
+    var L = out[k] = out[k] || [];
+    local[k].forEach(function(x){
+      var m = L.filter(function(y){ return y.t===x.t && y.c===x.c; })[0];
+      if(m){ if(x.d) m.d = true; } else L.push({t:x.t, c:x.c, d:x.d});
+    });
+  });
+  return out;
+}
+// 다시 그릴 때 입력 중이던 글자·분류·커서를 그대로 유지
+function renderKeep(){
+  var vals = {}, sels = {}, ae = document.activeElement;
+  var fk = (ae && ae.matches && ae.matches('.add input')) ? ae.dataset.k : null;
+  var ss = fk ? ae.selectionStart : 0;
+  document.querySelectorAll('.add input').forEach(function(i){ if(i.value) vals[i.dataset.k] = i.value; });
+  document.querySelectorAll('.add select').forEach(function(s){ sels[s.dataset.k] = s.value; });
+  render();
+  document.querySelectorAll('.add input').forEach(function(i){ if(vals[i.dataset.k] != null) i.value = vals[i.dataset.k]; });
+  document.querySelectorAll('.add select').forEach(function(s){ if(sels[s.dataset.k] != null) s.value = sels[s.dataset.k]; });
+  if(fk){
+    var n = document.querySelector('.add input[data-k="'+fk+'"]');
+    if(n){ n.focus(); try{ n.setSelectionRange(ss, ss); }catch(e){} }
   }
 }
-document.getElementById('authbtn').addEventListener('click', toggleAuth);
-document.getElementById('authsetbtn').addEventListener('click', toggleAuth);
 
 onAuthStateChanged(auth, function(user){
   fbUser = user;
   if(unsubDb){ unsubDb(); unsubDb = null; }
   updateAuthUI();
-  if(user){
-    var ref = doc(db, 'users', user.uid, 'apps', 'planner');
-    unsubDb = onSnapshot(ref, function(snap){
-      if(snap.exists() && snap.data().data){
-        try{
-          var remoteData = JSON.parse(snap.data().data);
-          if(remoteData && typeof remoteData === 'object'){
-            isRemoteUpdate = true;
-            data = remoteData;
-            localStorage.setItem('planner-v1', JSON.stringify(data));
-            render();
-            isRemoteUpdate = false;
-          }
-        }catch(e){}
-      } else {
-        save();
+  if(!user) return;
+  firstSnap = true;
+  var ref = doc(db, 'users', user.uid, 'apps', 'planner');
+  unsubDb = onSnapshot(ref, function(snap){
+    if(snap.metadata.hasPendingWrites) return;   // 내가 방금 저장한 것이 되돌아온 경우는 무시
+    var hasRemote = snap.exists() && snap.data().data, remote = null;
+    if(hasRemote){
+      try{ remote = JSON.parse(snap.data().data); }catch(e){ return; }
+      if(!remote || typeof remote !== 'object') return;
+    }
+    var merged = false;
+    if(firstSnap){
+      firstSnap = false;
+      var lastUid = ''; try{ lastUid = localStorage.getItem('planner-uid') || ''; }catch(e){}
+      if(lastUid && lastUid !== user.uid){ data = {}; }   // 다른 계정의 할 일은 섞지 않음
+      try{ localStorage.setItem('planner-uid', user.uid); }catch(e){}
+      if(remote && Object.keys(data).length && JSON.stringify(data) !== JSON.stringify(remote)){
+        remote = mergeData(remote, data); merged = true;   // 이 기기의 할 일과 클라우드 할 일을 합침
       }
-    });
-  }
+    }
+    if(!remote){ save(); renderKeep(); return; }   // 클라우드가 비어 있으면 지금 내용을 올림
+    isRemoteUpdate = true;
+    data = remote;
+    try{ localStorage.setItem('planner-v1', JSON.stringify(data)); }catch(e){}
+    renderKeep();
+    isRemoteUpdate = false;
+    if(merged) save();
+  });
 });
 
 var S={view:'month',cur:new Date(),sel:key(new Date())},TK=key(new Date());
@@ -194,9 +290,89 @@ function dayPanel(k,cls,title){
 function mfold(y,m){var k='m'+y+'-'+String(m+1).padStart(2,'0'),s=stat([k]);return '<details class="fold"'+(S.mopen?' open':'')+'><summary>'+(m+1)+'월 할 일 ('+s.d+'/'+s.t+')</summary>'+dayPanel(k,'mlist',(m+1)+'월 할 일 (이번 달 목표)')+'</details>'}
 function wlist(ks){return dayPanel('w'+ks[0],'mlist',ks.indexOf(TK)>=0?'이번 주 할 일':'이 주 할 일')}
 function mlist(y,m){return dayPanel('m'+y+'-'+String(m+1).padStart(2,'0'),'mlist',(m+1)+'월 할 일 (이번 달 목표)')}
+var SUG=['운동 30분','물 2L 마시기','영양제 먹기','일찍 자기','스트레칭','공부 1시간'],COLS=['보라','살구','민트','노랑','회색'];
+function p2(n){return String(n).padStart(2,'0')}
+function rDone(k,name){return (data['r'+k]||[]).some(function(x){return x.t===name})}
+function rStreak(name){
+  var d=parse(TK);if(!rDone(key(d),name))d.setDate(d.getDate()-1);
+  var n=0;while(n<400&&rDone(key(d),name)){n++;d.setDate(d.getDate()-1)}
+  return n}
+function toggleR(k,i){
+  var R=data.rt||[],x=R[i];if(!x||k>TK)return;
+  var L=data['r'+k]||[],j=-1;L.forEach(function(y,q){if(y.t===x.t)j=q});
+  var on=j<0;
+  if(on){L.push({t:x.t,c:0,d:true});data['r'+k]=L}else{L.splice(j,1);if(L.length)data['r'+k]=L;else delete data['r'+k]}
+  save();render();
+  if(on){
+    try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}
+    document.querySelectorAll('[data-act="rtog"][data-k="'+k+'"][data-i="'+i+'"]').forEach(function(el){el.classList.add('pop')});
+  }}
+function addQuick(name){
+  var R=data.rt=data.rt||[];
+  if(R.some(function(x){return x.t===name}))return;
+  R.push({t:name,c:R.length%4,d:false});save();render()}
+function mDays(y,m){var a=[],n=new Date(y,m+1,0).getDate();for(var d=1;d<=n;d++)a.push(y+'-'+p2(m+1)+'-'+p2(d));return a}
+function rGrid(R,days,sel,mk,wk){
+  if(!R.length)return '';
+  var th='<th class="rn"></th>';
+  days.forEach(function(k2){
+    var d=parse(k2),dw=d.getDay();
+    th+='<th class="'+(dw===0?'su ':(dw===6?'sa ':''))+(k2===TK?'t ':'')+(k2===sel?'sd':'')+'">'+(wk?'<small>'+DOW[dw]+'</small>':'')+d.getDate()+'</th>';
+  });
+  if(wk)th+='<th class="tot">합계</th>';
+  var body=R.map(function(x,i){
+    var tds='',cnt=0;
+    days.forEach(function(k3){
+      var on=rDone(k3,x.t),d3=parse(k3);if(on)cnt++;
+      tds+='<td'+(k3===sel?' class="sd"':'')+'><button class="rc'+(on?' on':'')+'" data-act="rtog" data-k="'+k3+'" data-i="'+i+'"'+(k3>TK?' disabled':'')+' aria-label="'+(d3.getMonth()+1)+'월 '+d3.getDate()+'일 '+esc(x.t)+(on?' 완료':'')+'"></button></td>';
+    });
+    if(wk)tds+='<td class="tot">'+cnt+'/'+days.length+'</td>';
+    return '<tr style="--rc:var(--c'+x.c+')"><th class="rn">'+esc(x.t)+'</th>'+tds+'</tr>';
+  }).join('');
+  return '<div class="rgrid'+(wk?' wk':'')+'" data-m="'+mk+'"><table><thead><tr>'+th+'</tr></thead><tbody>'+body+'</tbody></table></div>';
+}
+function rBottom(days,title,mk,wk){
+  var R=data.rt||[];
+  var h='<div class="rsec"><b>'+title+'</b><button class="rlink" data-act="view" data-v="routine">루틴 탭 ›</button></div>';
+  if(!R.length)return h+'<p class="empty rempty">아직 루틴이 없어요. 루틴 탭에서 추가해 보세요.</p>';
+  return h+rGrid(R,days,'',mk,wk);
+}
+function rScrollSave(){var g=document.querySelector('#view .rgrid');return g?{m:g.dataset.m,l:g.scrollLeft}:null}
+function rScrollSet(sv,sel,mk,auto){
+  var g=document.querySelector('#view .rgrid');if(!g)return;
+  g.scrollLeft=(sv&&sv.m===mk)?sv.l:((auto&&sel.indexOf(mk)===0)?Math.max(0,(+sel.slice(8)-4)*34):0);
+}
+function routineRender(){
+  var c=S.cur,v=document.getElementById('view'),y=c.getFullYear(),m=c.getMonth(),n=new Date(y,m+1,0).getDate();
+  var R=data.rt||[],sel=S.sel,ms=y+'-'+p2(m+1)+'-',sd=parse(sel);
+  var sv=rScrollSave();
+  document.getElementById('lab').textContent=y+'년 '+(m+1)+'월';
+  var ws=new Date(sd.getFullYear(),sd.getMonth(),sd.getDate()-sd.getDay()),strip='';
+  for(var j=0;j<7;j++){
+    var dd=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+j),kk=key(dd),cnt=R.filter(function(x){return rDone(kk,x.t)}).length;
+    strip+='<button class="rd'+(kk===sel?' sel':'')+(kk===TK?' today':'')+(kk>TK?' fut':'')+'" data-act="rsel" data-k="'+kk+'" aria-label="'+(dd.getMonth()+1)+'월 '+dd.getDate()+'일"><small>'+DOW[j]+'</small><b>'+dd.getDate()+'</b><i class="'+(R.length&&cnt===R.length?'all':(cnt?'some':''))+'"></i></button>';
+  }
+  var done=R.filter(function(x){return rDone(sel,x.t)}).length,pct=R.length?Math.round(done/R.length*100):0;
+  var den=ms+'01'>TK?0:(ms+p2(n)<=TK?n:+TK.slice(8));
+  var title=(sd.getMonth()+1)+'월 '+sd.getDate()+'일 ('+DOW[sd.getDay()]+')'+(sel===TK?' · 오늘':'');
+  var head='<section class="rhead"><div><b>'+title+'</b><span>'+(R.length?(done===R.length?'모두 완료했어요!':done+'/'+R.length+' 완료'):'루틴을 추가해 보세요')+'</span></div><div class="ring" style="--p:'+pct+'"><span>'+pct+'%</span></div></section>';
+  var rows=R.length?R.map(function(x,i){
+    var on=rDone(sel,x.t),st=rStreak(x.t),mc=0;
+    for(var d=1;d<=n;d++)if(rDone(ms+p2(d),x.t))mc++;
+    return '<div class="rrow'+(on?' on':'')+'" style="--rc:var(--c'+x.c+')"><button class="rchk" data-act="rtog" data-k="'+sel+'" data-i="'+i+'"'+(sel>TK?' disabled':'')+' aria-pressed="'+on+'" aria-label="'+esc(x.t)+' 완료 체크"></button><div class="rtx"><b>'+esc(x.t)+'</b><small>'+(st?st+'일 연속 · ':'')+(m+1)+'월 '+mc+'/'+den+'일</small></div>'+(S.redit?'<button class="rdel" data-act="del" data-k="rt" data-i="'+i+'">삭제</button>':'')+'</div>';
+  }).join(''):'<p class="empty rempty">아직 루틴이 없어요. 아래에서 추가하거나 추천 루틴을 눌러 보세요.</p>';
+  if(R.length&&sel>TK)rows+='<p class="empty">아직 오지 않은 날은 체크할 수 없어요.</p>';
+  var sug=SUG.filter(function(t){return !R.some(function(x){return x.t===t})}).slice(0,4);
+  var chips=sug.length?'<div class="chips">'+sug.map(function(t){return '<button data-act="rquick" data-n="'+esc(t)+'">+ '+esc(t)+'</button>'}).join('')+'</div>':'';
+  var add='<section class="panel"><h2>루틴 추가</h2><div class="add"><input data-k="rt" placeholder="예) 운동 30분" maxlength="30" aria-label="루틴 이름"><select data-k="rt" aria-label="색">'+COLS.map(function(t,i){return '<option value="'+i+'"'+(i===R.length%4?' selected':'')+'>'+t+'</option>'}).join('')+'</select><button data-act="add" data-k="rt">추가</button></div>'+chips+'</section>';
+  var grid=R.length?'<div class="rsec"><b>'+(m+1)+'월 체크표</b></div>'+rGrid(R,mDays(y,m),sel,ms,false):'';
+  v.innerHTML='<div class="rstrip">'+strip+'</div>'+head+'<div class="rsec"><b>루틴 체크</b><button class="rlink" data-act="redit">'+(S.redit?'완료':'편집')+'</button></div><div class="rlist">'+rows+'</div>'+add+grid;
+  rScrollSet(sv,sel,ms,true);
+}
 function render(){
-  var c=S.cur,v=document.getElementById('view'),h='';document.getElementById('dp').value=key(S.view==='month'?parse(S.sel):c);
+  var c=S.cur,v=document.getElementById('view'),h='',mk0='',sv0=rScrollSave();document.getElementById('dp').value=key(S.view!=='week'?parse(S.sel):c);
   document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.v===S.view)});
+  if(S.view==='routine'){routineRender();return}
   if(S.view==='month'){
     var y=c.getFullYear(),m=c.getMonth(),off=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate(),keys=[];
     document.getElementById('lab').textContent=y+'년 '+(m+1)+'월';
@@ -205,30 +381,37 @@ function render(){
     for(var d=1;d<=n;d++){var k=key(new Date(y,m,d));keys.push(k);var L=data[k]||[],cs=[];L.forEach(function(x){if(cs.indexOf(x.c)<0)cs.push(x.c)});
       h+='<button class="cell '+(k===TK?'today ':'')+(k<TK?'past ':'')+(k===S.sel?'sel':'')+'" data-act="sel" data-k="'+k+'"><b>'+d+'</b><span class="dots">'+cs.map(function(x){return '<i style="background:var(--c'+x+')"></i>'}).join('')+'</span>'+(L.length?'<small>'+L.filter(function(x){return x.d}).length+'/'+L.length+'</small>':'')+'</button>'}
     h+='</div>';
-    h=mlist(y,m)+sumBar(stat(keys),'이번 달')+h+dayPanel(S.sel,'');
+    mk0=y+'-'+p2(m+1)+'-';
+    h=mlist(y,m)+sumBar(stat(keys),'이번 달')+h+dayPanel(S.sel,'')+rBottom(keys,(m+1)+'월 루틴 체크',mk0,false);
   }else{
     var st=new Date(c.getFullYear(),c.getMonth(),c.getDate()-c.getDay()),ks=[],ps='';
     for(var j=0;j<7;j++){var dd=new Date(st.getFullYear(),st.getMonth(),st.getDate()+j),kk=key(dd);ks.push(kk)}ks.filter(function(x){return x>=TK}).concat(ks.filter(function(x){return x<TK})).forEach(function(x){ps+=dayPanel(x,'')});
     var en=parse(ks[6]);
     document.getElementById('lab').textContent=(st.getMonth()+1)+'월 '+st.getDate()+'일 – '+(en.getMonth()!==st.getMonth()?(en.getMonth()+1)+'월 ':'')+en.getDate()+'일';
-    h=mfold(st.getFullYear(),st.getMonth())+wlist(ks)+sumBar(stat(ks),'이번 주')+'<div class="week">'+ps+'</div>';
+    h=mfold(st.getFullYear(),st.getMonth())+wlist(ks)+sumBar(stat(ks),'이번 주')+'<div class="week">'+ps+'</div>'+rBottom(ks,'이번 주 루틴 체크','w'+ks[0],true);
+    mk0='w'+ks[0];
   }
-  v.innerHTML=h}
+  v.innerHTML=h;rScrollSet(sv0,S.sel,mk0,S.view==='month')}
 function add(k){
   var inp=document.querySelector('input[data-k="'+k+'"]'),sel=document.querySelector('select[data-k="'+k+'"]'),t=inp.value.trim();
   if(!t){inp.focus();return}
+  if(k==='rt'&&(data.rt||[]).some(function(x){return x.t===t})){inp.select();return}
   (data[k]=data[k]||[]).push({t:t,c:+sel.value,d:false});save();render();
   var n=document.querySelector('input[data-k="'+k+'"]');if(n)n.focus()}
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b)return;var a=b.dataset.act,k=b.dataset.k,i=+b.dataset.i;
-  if(a==='view'){S.view=b.dataset.v;if(S.view==='week')S.cur=parse(S.sel);render()}
+  if(a==='view'){S.view=b.dataset.v;if(S.view==='week'||S.view==='routine')S.cur=parse(S.sel);render()}
   else if(a==='prev'||a==='next'){var s=a==='next'?1:-1,c=S.cur;
-    S.cur=S.view==='month'?new Date(c.getFullYear(),c.getMonth()+s,1):new Date(c.getFullYear(),c.getMonth(),c.getDate()+7*s);
-    if(S.view==='month')S.sel=key(S.cur);render()}
+    S.cur=S.view!=='week'?new Date(c.getFullYear(),c.getMonth()+s,1):new Date(c.getFullYear(),c.getMonth(),c.getDate()+7*s);
+    if(S.view!=='week')S.sel=(S.view==='routine'&&key(S.cur).slice(0,7)===TK.slice(0,7))?TK:key(S.cur);render()}
   else if(a==='today'){S.cur=new Date();S.sel=TK;render()}
-  else if(a==='sel'){var o=document.querySelector('.cell.sel');if(o)o.classList.remove('sel');b.classList.add('sel');S.sel=k;document.getElementById('view').lastElementChild.outerHTML=dayPanel(k,'');document.getElementById('dp').value=k}
+  else if(a==='sel'){var o=document.querySelector('.cell.sel');if(o)o.classList.remove('sel');b.classList.add('sel');S.sel=k;var dp0=document.querySelector('#view>section.panel:not(.mlist)');if(dp0)dp0.outerHTML=dayPanel(k,'');document.getElementById('dp').value=k}
   else if(a==='tog'){data[k][i].d=!data[k][i].d;save();render()}
-  else if(a==='del'){data[k].splice(i,1);if(!data[k].length)delete data[k];save();render()}
+  else if(a==='del'){if(k==='rt'&&!confirm('"'+data.rt[i].t+'" 루틴을 삭제할까요? 지난 체크 기록은 남아 있어요.'))return;data[k].splice(i,1);if(!data[k].length)delete data[k];save();render()}
+  else if(a==='rsel'){S.sel=k;S.cur=parse(k);render()}
+  else if(a==='rtog')toggleR(k,i)
+  else if(a==='redit'){S.redit=!S.redit;render()}
+  else if(a==='rquick')addQuick(b.dataset.n)
   else if(a==='add')add(k)});
 function curTheme(){return document.documentElement.getAttribute('data-theme')||'purple'}
 function setTheme(t,sv){document.documentElement.setAttribute('data-theme',t);var tb=document.getElementById('th');tb.textContent={light:'☀',purple:'✦',black:'☾'}[t];tb.setAttribute('aria-label','화면 모드: '+{light:'라이트',purple:'보라(기본)',black:'블랙'}[t]+' (누르면 바뀝니다)');if(sv){try{localStorage.setItem('planner-theme',t)}catch(e){}}}
@@ -238,7 +421,7 @@ document.getElementById('th').addEventListener('click',function(){var o=['purple
 function backupText(){return JSON.stringify({app:'planner',v:1,exported:new Date().toISOString(),data:data},null,2)}
 function smsg(t){document.getElementById('smsg').textContent=t}
 function showFb(txt){var t=document.getElementById('fbt');t.value=txt;document.getElementById('fb').hidden=false}
-function clean(txt){try{var o=JSON.parse(txt);if(!o||o.app!=='planner'||!o.data||typeof o.data!=='object')return null;var out={};Object.keys(o.data).forEach(function(k){if(!/^(\d{4}-\d\d-\d\d|[mw]\d{4}-\d\d(-\d\d)?)$/.test(k)||!Array.isArray(o.data[k]))return;var L=o.data[k].filter(function(x){return x&&typeof x.t==='string'&&x.t.trim()}).map(function(x){var c=+x.c;return{t:x.t.slice(0,80),c:(c>=0&&c<=4)?Math.floor(c):4,d:!!x.d}});if(L.length)out[k]=L});return out}catch(e){return null}}
+function clean(txt){try{var o=JSON.parse(txt);if(!o||o.app!=='planner'||!o.data||typeof o.data!=='object')return null;var out={};Object.keys(o.data).forEach(function(k){if(!/^(\d{4}-\d\d-\d\d|[mw]\d{4}-\d\d(-\d\d)?|r\d{4}-\d\d-\d\d|rt)$/.test(k)||!Array.isArray(o.data[k]))return;var L=o.data[k].filter(function(x){return x&&typeof x.t==='string'&&x.t.trim()}).map(function(x){var c=+x.c;return{t:x.t.slice(0,80),c:(c>=0&&c<=4)?Math.floor(c):4,d:!!x.d}});if(L.length)out[k]=L});return out}catch(e){return null}}
 document.addEventListener('toggle',function(e){if(e.target.classList&&e.target.classList.contains('fold'))S.mopen=e.target.open},true);
 var pend=null;
 document.getElementById('gear').addEventListener('click',function(){var s=document.getElementById('set');s.hidden=!s.hidden;this.setAttribute('aria-expanded',String(!s.hidden))});
