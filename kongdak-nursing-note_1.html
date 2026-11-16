@@ -365,7 +365,47 @@ const k=Math.max(1,Math.min(n,+f.k.value||1)),nw=f.nw.checked,sel2=ids(),g=()=>h
 if(!qs.length)return $('#hqi').textContent=sid?'문제를 만들 수 없어요. 이 과목에 서로 다른 뜻의 카드가 5개 이상 필요해요.':'문제를 만들 수 없어요. 서로 다른 뜻의 카드가 5개 이상 필요해요.';
 d.close();stH(qs,g,sid?{v:'units',s:sid}:undefined)};
 d.showModal()}
-function render(){const v=nav.v,ap=$('#app'),y0=scrollY,sg=[nav.v,nav.s,nav.u,nav.tab,nav.tab=='play'||nav.v=='hq'?qz.i:nav.tab=='study'?sd.i:''].join();ap.classList.remove('inR','inL');void ap.offsetWidth;if(dir)ap.classList.add(dir);dir='';$('#app').innerHTML=(bad?'<p class="warn">저장 오류가 발생했어요. 네트워크나 권한을 확인해 주세요.</p>':'')+(v=='home'?home():v=='units'?units():v=='unit'?unitV():v=='hq'?play():v=='imp'?impV():setV());scrollTo(0,sg==rs?y0:0);rs=sg;const t=$('#sm');if(t)grow(t)}
+// ---- 뒤로가기(기기 버튼·브라우저 뒤로)를 앱 안의 이전 화면으로 연결해요. 홈에서 누르면 앱이 닫혀요. ----
+let hd=0,ps=0;
+try{history.replaceState({d:0},'')}catch(e){}
+function navDepth(){
+  if(nav.v=='home')return 0;
+  if(nav.v=='units'||nav.v=='set'||nav.v=='imp')return 1;
+  if(nav.v=='unit')return (nav.tab=='play'||nav.tab=='study')?3:2;
+  if(nav.v=='hq')return qz&&qz.ret?2:1;
+  return 0;
+}
+const layers=()=>navDepth()+(sel?1:0)+(document.querySelector('dialog[open]')?1:0);
+function stepBack(){
+  dir='inL';
+  if(nav.v=='hq'&&qz&&qz.ret)nav={...qz.ret};
+  else if(nav.tab=='study'&&nav.v=='unit')nav.tab='card';
+  else if(nav.tab=='play'&&nav.v=='unit')nav.tab=qz&&qz.mode=='w'?'wr':'quiz';
+  else if(nav.v=='unit')nav={v:'units',s:nav.s};
+  else nav={v:'home'};
+}
+function syncHist(){
+  try{
+    const d=layers();
+    if(d>hd){for(let i=hd;i<d;i++)history.pushState({d:i+1},'');hd=d}
+    else if(d<hd){ps++;const k=hd-d;hd=d;history.go(-k)}
+  }catch(e){}
+}
+window.addEventListener('popstate',e=>{
+  if(ps>0){ps--;return}
+  const t=(e.state&&e.state.d)||0;
+  let tot=layers();
+  if(t>tot){ps++;hd=tot;try{history.go(tot-t)}catch(x){}return}   // 앞으로가기는 무시
+  hd=t;
+  const dl=document.querySelector('dialog[open]');
+  if(dl&&tot>t){dl.close();tot--}
+  if(sel&&tot>t){sel=null;tot--}
+  while(tot>t&&navDepth()>0){stepBack();tot--}
+  render();
+});
+{const sm0=HTMLDialogElement.prototype.showModal;HTMLDialogElement.prototype.showModal=function(){sm0.call(this);syncHist()}}
+document.addEventListener('close',()=>syncHist(),true);
+function render(){const v=nav.v,ap=$('#app'),y0=scrollY,sg=[nav.v,nav.s,nav.u,nav.tab,nav.tab=='play'||nav.v=='hq'?qz.i:nav.tab=='study'?sd.i:''].join();ap.classList.remove('inR','inL');void ap.offsetWidth;if(dir)ap.classList.add(dir);dir='';$('#app').innerHTML=(bad?'<p class="warn">저장 오류가 발생했어요. 네트워크나 권한을 확인해 주세요.</p>':'')+(v=='home'?home():v=='units'?units():v=='unit'?unitV():v=='hq'?play():v=='imp'?impV():setV());scrollTo(0,sg==rs?y0:0);rs=sg;const t=$('#sm');if(t)grow(t);syncHist()}
 
 function ask(title,fs,vals,ok){const d=$('#dg');
 d.innerHTML=`<form><h2>${title}</h2>${fs.map(f=>`<label>${f.l}${f.t=='a'?`<textarea name="${f.k}" rows="3" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"${f.r?' required':''}>${esc(vals[f.k])}</textarea>`:f.t=='s'?`<select name="${f.k}">${f.o.map((o,i)=>`<option value="${i}"${vals[f.k]==i?' selected':''}>${o}</option>`).join('')}</select>`:`<input name="${f.k}" value="${esc(vals[f.k])}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"${f.r?' required':''}>`}</label>`).join('')}<div class="acts"><button type="button" class="btn s" data-a="cx">취소</button><button class="btn">저장</button></div></form>`;
@@ -392,7 +432,7 @@ set(){dir='inR';nav={v:'set'};render()},
 openS(d){dir='inR';nav={v:'units',s:d.id};render()},
 openU(d){fl.clear();dir='inR';nav={v:'unit',s:nav.s,u:d.id,tab:'card'};render()},
 tab(d){nav.tab=d.id;render()},
-back(){dir='inL';if(nav.v=='hq'&&qz&&qz.ret){nav={...qz.ret};return render()}if(nav.tab=='study'&&nav.v=='unit')nav.tab='card';else if(nav.tab=='play'&&nav.v=='unit')nav.tab=qz&&qz.mode=='w'?'wr':'quiz';else if(nav.v=='unit')nav={v:'units',s:nav.s};else nav={v:'home'};render()},
+back(){if(hd>0)history.back();else{stepBack();render()}},
 cx(){$('#dg').close()},
 addS(){ask('과목 추가',NF,{},o=>{const k=D.subjects.length;D.subjects.push({id:uid(),name:o.n.trim()||'새 과목',c:CL[k%5],i:IC[k%5],units:[]});fin()})},
 editS(){ask('과목 이름 바꾸기',NF,{n:S().name},o=>{S().name=o.n.trim()||S().name;fin()})},
