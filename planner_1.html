@@ -148,7 +148,8 @@ body[data-v="widget"] .top,body[data-v="widget"] .bar,body[data-v="widget"] #set
 <div class="srow"><b>백업 불러오기</b><p>저장해 둔 파일을 고르면, 지금 할 일을 그 내용으로 바꿀 수 있어요.</p><button class="pb ghost" id="imp">파일 고르기</button><input type="file" id="impf" accept=".json,application/json" hidden></div>
 <div id="cf" class="srow" hidden><button class="pb" id="cfy">이 내용으로 바꾸기</button> <button class="pb ghost" id="cfn">취소</button></div>
 <div id="fb" class="srow" hidden><p>파일 저장이 안 될 때는 아래 글자를 모두 복사해서 메모 앱에 붙여 넣어 보관하세요.</p><textarea id="fbt" readonly rows="4" aria-label="백업 내용"></textarea><button class="pb ghost" id="cp">복사</button></div>
-<p id="smsg" class="empty" role="status"></p></section>
+<p id="smsg" class="empty" role="status"></p>
+<p class="empty" style="margin:10px 0 0">앱 버전: 1117-c (월간으로 시작)</p></section>
 <div class="bar">
 <div class="tabs" role="group" aria-label="보기 선택"><button data-act="view" data-v="today">오늘</button><button data-act="view" data-v="month">월간</button><button data-act="view" data-v="week">주간</button><button data-act="view" data-v="routine">루틴</button></div>
 <div class="nav"><button class="ib" data-act="prev" aria-label="이전">‹</button><label class="pick"><b id="lab"></b><input type="date" id="dp" aria-label="날짜 선택"></label><button class="ib" data-act="next" aria-label="다음">›</button><button class="ib" data-act="today">오늘로</button></div>
@@ -291,8 +292,8 @@ onAuthStateChanged(auth, function(user){
 
 var S={view:'month',cur:new Date(),sel:key(new Date())},TK=key(new Date());
 function isStandalone(){try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}}
-(function(){var h=location.hash.replace('#',''),ok={today:1,month:1,week:1,routine:1,widget:1};
-  if(ok[h])S.view=h;})();
+function viewFromHash(h){h=h.replace('#','');var M={'go-today':'today','go-month':'month','go-week':'week','go-routine':'routine',widget:'widget'};return M[h]||''}
+(function(){var v0=viewFromHash(location.hash);if(v0)S.view=v0;})();
 function stat(keys){var t=0,d=0;keys.forEach(function(k){(data[k]||[]).forEach(function(x){t++;if(x.d)d++})});return{t:t,d:d}}
 function sumBar(s,label){var p=s.t?Math.round(s.d/s.t*100):0;return '<div class="sum"><span>'+label+' '+s.d+'/'+s.t+'개 완료</span><div class="pg"><i style="width:'+p+'%"></i></div><span>'+p+'%</span></div>'}
 function dayPanel(k,cls,title){
@@ -437,7 +438,7 @@ function add(k){
   var n=document.querySelector('input[data-k="'+k+'"]');if(n)n.focus()}
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b)return;var a=b.dataset.act,k=b.dataset.k,i=+b.dataset.i;
-  if(a==='view'){S.view=b.dataset.v;if(S.view==='today'){S.sel=TK;S.cur=new Date()}else if(S.view==='week'||S.view==='routine')S.cur=parse(S.sel);try{history.replaceState(null,'',S.view==='month'?location.pathname+location.search:'#'+S.view)}catch(e){}render()}
+  if(a==='view'){S.view=b.dataset.v;if(S.view==='today'){S.sel=TK;S.cur=new Date()}else if(S.view==='week'||S.view==='routine')S.cur=parse(S.sel);try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}
   else if(a==='prev'||a==='next'){var s=a==='next'?1:-1,c=S.cur;
     S.cur=S.view!=='week'?new Date(c.getFullYear(),c.getMonth()+s,1):new Date(c.getFullYear(),c.getMonth(),c.getDate()+7*s);
     if(S.view!=='week')S.sel=(S.view==='routine'&&key(S.cur).slice(0,7)===TK.slice(0,7))?TK:key(S.cur);render()}
@@ -482,8 +483,8 @@ document.getElementById('instbtn').addEventListener('click',function(){
 });
 updInstall();
 window.addEventListener('hashchange',function(){
-  var h=location.hash.replace('#','');
-  if(({today:1,month:1,week:1,routine:1,widget:1})[h] && S.view!==h){S.view=h;if(h==='today'){S.sel=TK;S.cur=new Date()}render()}
+  var h=viewFromHash(location.hash);
+  if(h && S.view!==h){S.view=h;if(h==='today'){S.sel=TK;S.cur=new Date()}render()}
 });
 if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){
   window.addEventListener('load',function(){navigator.serviceWorker.register('./planner-sw.js',{scope:'./planner_1.html'}).catch(function(){})});
