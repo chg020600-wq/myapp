@@ -1,0 +1,53 @@
+{
+  "name": "나의 플래너",
+  "short_name": "플래너",
+  "description": "월간·주간 할 일과 루틴 체크 플래너",
+  "id": "./planner_1.html",
+  "start_url": "./planner_1.html#today",
+  "scope": "./planner_1.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#181526",
+  "theme_color": "#181526",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "planner-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "planner-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "오늘",
+      "short_name": "오늘",
+      "url": "./planner_1.html#today",
+      "icons": [
+        {
+          "src": "planner-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "루틴 체크",
+      "short_name": "루틴",
+      "url": "./planner_1.html#routine",
+      "icons": [
+        {
+          "src": "planner-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
