@@ -3,7 +3,7 @@
   "short_name": "플래너",
   "description": "월간·주간 할 일과 루틴 체크 플래너",
   "id": "./planner_1.html",
-  "start_url": "./planner_1.html#today",
+  "start_url": "./planner_1.html",
   "scope": "./planner_1.html",
   "display": "standalone",
   "orientation": "portrait",
@@ -25,6 +25,18 @@
     }
   ],
   "shortcuts": [
+    {
+      "name": "월간 할 일",
+      "short_name": "월간 할 일",
+      "url": "./planner_1.html#widget",
+      "icons": [
+        {
+          "src": "planner-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
     {
       "name": "오늘",
       "short_name": "오늘",
