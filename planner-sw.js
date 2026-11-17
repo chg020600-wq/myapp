@@ -1,6 +1,6 @@
 // 나의 플래너 서비스 워커: planner_1.html 에만 적용됩니다. (같은 저장소의 다른 앱에는 영향 없음)
 // 화면(HTML)은 항상 인터넷에서 최신본을 먼저 받고, 연결이 없을 때만 저장본을 씁니다.
-var V = 'planner-sw-v2';
+var V = 'planner-sw-v3';
 var PAGE = new URL('./planner_1.html', self.location.href).href;
 var SHELL = [PAGE, 'planner.webmanifest', 'planner-icon-192.png', 'planner-icon-512.png'];
 
@@ -37,6 +37,16 @@ self.addEventListener('fetch', function(e){
       }).catch(function(){
         return caches.match(key).then(function(m){ return m || caches.match(PAGE); });
       })
+    );
+    return;
+  }
+
+  if(sameOrigin && u.pathname.slice(-19) === 'planner.webmanifest'){   // 설치 설정은 항상 최신본 먼저
+    e.respondWith(
+      fetch(r).then(function(res){
+        if(res && res.ok){ var cp = res.clone(); caches.open(V).then(function(c){ c.put(r, cp); }); }
+        return res;
+      }).catch(function(){ return caches.match(r); })
     );
     return;
   }

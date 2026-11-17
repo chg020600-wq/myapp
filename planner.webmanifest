@@ -40,7 +40,7 @@
     {
       "name": "오늘",
       "short_name": "오늘",
-      "url": "./planner_1.html#today",
+      "url": "./planner_1.html#go-today",
       "icons": [
         {
           "src": "planner-icon-192.png",
@@ -52,7 +52,7 @@
     {
       "name": "루틴 체크",
       "short_name": "루틴",
-      "url": "./planner_1.html#routine",
+      "url": "./planner_1.html#go-routine",
       "icons": [
         {
           "src": "planner-icon-192.png",
