@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#181526">
+<meta name="apple-mobile-web-app-title" content="플래너">
+<link rel="manifest" href="planner.webmanifest">
+<link rel="icon" href="planner-icon-192.png">
+<link rel="apple-touch-icon" href="planner-icon-192.png">
 <title>먼슬리·위클리 플래너</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script>var fl=document.createElement('link');fl.rel='stylesheet';fl.href='https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&display=swap';document.head.appendChild(fl)</script>
@@ -125,6 +130,8 @@ button{touch-action:manipulation}
 .rgrid.wk .rn{width:84px;min-width:84px;max-width:84px}
 .rgrid.wk thead th.tot{width:46px}
 .rgrid .tot{font-size:12px;color:var(--mute)}
+body[data-v="today"] .nav{display:none}
+.tnote{color:var(--mute);font-size:12px;line-height:1.6;margin:18px 2px 4px}
 @keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
 .pop{animation:pop .25s}
 </style>
@@ -134,14 +141,15 @@ button{touch-action:manipulation}
 <div class="top"><h1>나의 플래너</h1><button id="authbtn" class="sync-pill">로그인</button><button id="th" class="gb" aria-label="화면 모드 바꾸기"></button><button id="gear" class="gb" aria-label="설정" title="설정" aria-expanded="false">⚙</button></div>
 <section id="set" class="panel" hidden><h2>설정</h2>
 <div class="srow"><b>클라우드 동기화</b><p id="authdesc">위쪽 "로그인" 버튼으로 Google 로그인을 하면 기기 간 할 일이 실시간으로 동기화돼요.</p></div>
+<div class="srow"><b>앱으로 설치</b><p id="instdesc"></p><button class="pb" id="instbtn" hidden>설치하기</button></div>
 <div class="srow"><b>백업 내보내기</b><p>할 일 전체를 파일로 저장해요. (JSON은 컴퓨터가 읽는 글자 파일이에요)</p><button class="pb" id="exp">파일로 저장</button></div>
 <div class="srow"><b>백업 불러오기</b><p>저장해 둔 파일을 고르면, 지금 할 일을 그 내용으로 바꿀 수 있어요.</p><button class="pb ghost" id="imp">파일 고르기</button><input type="file" id="impf" accept=".json,application/json" hidden></div>
 <div id="cf" class="srow" hidden><button class="pb" id="cfy">이 내용으로 바꾸기</button> <button class="pb ghost" id="cfn">취소</button></div>
 <div id="fb" class="srow" hidden><p>파일 저장이 안 될 때는 아래 글자를 모두 복사해서 메모 앱에 붙여 넣어 보관하세요.</p><textarea id="fbt" readonly rows="4" aria-label="백업 내용"></textarea><button class="pb ghost" id="cp">복사</button></div>
 <p id="smsg" class="empty" role="status"></p></section>
 <div class="bar">
-<div class="tabs" role="group" aria-label="보기 선택"><button data-act="view" data-v="month">월간</button><button data-act="view" data-v="week">주간</button><button data-act="view" data-v="routine">루틴</button></div>
-<div class="nav"><button class="ib" data-act="prev" aria-label="이전">‹</button><label class="pick"><b id="lab"></b><input type="date" id="dp" aria-label="날짜 선택"></label><button class="ib" data-act="next" aria-label="다음">›</button><button class="ib" data-act="today">오늘</button></div>
+<div class="tabs" role="group" aria-label="보기 선택"><button data-act="view" data-v="today">오늘</button><button data-act="view" data-v="month">월간</button><button data-act="view" data-v="week">주간</button><button data-act="view" data-v="routine">루틴</button></div>
+<div class="nav"><button class="ib" data-act="prev" aria-label="이전">‹</button><label class="pick"><b id="lab"></b><input type="date" id="dp" aria-label="날짜 선택"></label><button class="ib" data-act="next" aria-label="다음">›</button><button class="ib" data-act="today">오늘로</button></div>
 </div>
 <div id="view"></div>
 </div>
@@ -253,6 +261,7 @@ onAuthStateChanged(auth, function(user){
   var ref = doc(db, 'users', user.uid, 'apps', 'planner');
   unsubDb = onSnapshot(ref, function(snap){
     if(snap.metadata.hasPendingWrites) return;   // 내가 방금 저장한 것이 되돌아온 경우는 무시
+    if(!snap.exists() && snap.metadata.fromCache) return;   // 오프라인이라 서버 확인 전이면 기다림(클라우드를 덮어쓰지 않도록)
     var hasRemote = snap.exists() && snap.data().data, remote = null;
     if(hasRemote){
       try{ remote = JSON.parse(snap.data().data); }catch(e){ return; }
@@ -279,6 +288,9 @@ onAuthStateChanged(auth, function(user){
 });
 
 var S={view:'month',cur:new Date(),sel:key(new Date())},TK=key(new Date());
+function isStandalone(){try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}}
+(function(){var h=location.hash.replace('#',''),ok={today:1,month:1,week:1,routine:1};
+  if(ok[h])S.view=h;else if(isStandalone())S.view='today';})();
 function stat(keys){var t=0,d=0;keys.forEach(function(k){(data[k]||[]).forEach(function(x){t++;if(x.d)d++})});return{t:t,d:d}}
 function sumBar(s,label){var p=s.t?Math.round(s.d/s.t*100):0;return '<div class="sum"><span>'+label+' '+s.d+'/'+s.t+'개 완료</span><div class="pg"><i style="width:'+p+'%"></i></div><span>'+p+'%</span></div>'}
 function dayPanel(k,cls,title){
@@ -342,6 +354,19 @@ function rScrollSet(sv,sel,mk,auto){
   var g=document.querySelector('#view .rgrid');if(!g)return;
   g.scrollLeft=(sv&&sv.m===mk)?sv.l:((auto&&sel.indexOf(mk)===0)?Math.max(0,(+sel.slice(8)-4)*34):0);
 }
+function todayRender(){
+  var v=document.getElementById('view'),R=data.rt||[],L=data[TK]||[],d=parse(TK);
+  var td=L.filter(function(x){return x.d}).length,rd=R.filter(function(x){return rDone(TK,x.t)}).length;
+  var tot=L.length+R.length,dn=td+rd,pct=tot?Math.round(dn/tot*100):0;
+  var head='<section class="rhead"><div><b>'+(d.getMonth()+1)+'월 '+d.getDate()+'일 ('+DOW[d.getDay()]+')</b><span>할 일 '+td+'/'+L.length+' · 루틴 '+rd+'/'+R.length+'</span></div><div class="ring" style="--p:'+pct+'"><span>'+pct+'%</span></div></section>';
+  var rows=R.map(function(x,i){
+    var on=rDone(TK,x.t),st=rStreak(x.t);
+    return '<div class="rrow'+(on?' on':'')+'" style="--rc:var(--c'+x.c+')"><button class="rchk" data-act="rtog" data-k="'+TK+'" data-i="'+i+'" aria-pressed="'+on+'" aria-label="'+esc(x.t)+' 완료 체크"></button><div class="rtx"><b>'+esc(x.t)+'</b><small>'+(st?st+'일 연속':'오늘 아직 안 했어요')+'</small></div></div>';
+  }).join('');
+  var rsec='<div class="rsec"><b>오늘 루틴</b><button class="rlink" data-act="view" data-v="routine">루틴 탭 ›</button></div>'+(R.length?'<div class="rlist">'+rows+'</div>':'<p class="empty rempty">아직 루틴이 없어요. 루틴 탭에서 추가해 보세요.</p>');
+  var note=isStandalone()?'':'<p class="tnote">이 화면을 홈 화면에 올려 두고 쓰려면 ⚙ 설정의 "앱으로 설치"를 확인하세요.</p>';
+  v.innerHTML=head+rsec+'<div style="height:14px"></div>'+dayPanel(TK,'')+note;
+}
 function routineRender(){
   var c=S.cur,v=document.getElementById('view'),y=c.getFullYear(),m=c.getMonth(),n=new Date(y,m+1,0).getDate();
   var R=data.rt||[],sel=S.sel,ms=y+'-'+p2(m+1)+'-',sd=parse(sel);
@@ -372,6 +397,8 @@ function routineRender(){
 function render(){
   var c=S.cur,v=document.getElementById('view'),h='',mk0='',sv0=rScrollSave();document.getElementById('dp').value=key(S.view!=='week'?parse(S.sel):c);
   document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.v===S.view)});
+  document.body.setAttribute('data-v',S.view);
+  if(S.view==='today'){todayRender();return}
   if(S.view==='routine'){routineRender();return}
   if(S.view==='month'){
     var y=c.getFullYear(),m=c.getMonth(),off=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate(),keys=[];
@@ -400,7 +427,7 @@ function add(k){
   var n=document.querySelector('input[data-k="'+k+'"]');if(n)n.focus()}
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b)return;var a=b.dataset.act,k=b.dataset.k,i=+b.dataset.i;
-  if(a==='view'){S.view=b.dataset.v;if(S.view==='week'||S.view==='routine')S.cur=parse(S.sel);render()}
+  if(a==='view'){S.view=b.dataset.v;if(S.view==='today'){S.sel=TK;S.cur=new Date()}else if(S.view==='week'||S.view==='routine')S.cur=parse(S.sel);try{history.replaceState(null,'',S.view==='month'?location.pathname+location.search:'#'+S.view)}catch(e){}render()}
   else if(a==='prev'||a==='next'){var s=a==='next'?1:-1,c=S.cur;
     S.cur=S.view!=='week'?new Date(c.getFullYear(),c.getMonth()+s,1):new Date(c.getFullYear(),c.getMonth(),c.getDate()+7*s);
     if(S.view!=='week')S.sel=(S.view==='routine'&&key(S.cur).slice(0,7)===TK.slice(0,7))?TK:key(S.cur);render()}
@@ -423,6 +450,30 @@ function smsg(t){document.getElementById('smsg').textContent=t}
 function showFb(txt){var t=document.getElementById('fbt');t.value=txt;document.getElementById('fb').hidden=false}
 function clean(txt){try{var o=JSON.parse(txt);if(!o||o.app!=='planner'||!o.data||typeof o.data!=='object')return null;var out={};Object.keys(o.data).forEach(function(k){if(!/^(\d{4}-\d\d-\d\d|[mw]\d{4}-\d\d(-\d\d)?|r\d{4}-\d\d-\d\d|rt)$/.test(k)||!Array.isArray(o.data[k]))return;var L=o.data[k].filter(function(x){return x&&typeof x.t==='string'&&x.t.trim()}).map(function(x){var c=+x.c;return{t:x.t.slice(0,80),c:(c>=0&&c<=4)?Math.floor(c):4,d:!!x.d}});if(L.length)out[k]=L});return out}catch(e){return null}}
 document.addEventListener('toggle',function(e){if(e.target.classList&&e.target.classList.contains('fold'))S.mopen=e.target.open},true);
+var dip=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dip=e;updInstall()});
+window.addEventListener('appinstalled',function(){dip=null;updInstall()});
+function updInstall(){
+  var d=document.getElementById('instdesc'),b=document.getElementById('instbtn');
+  if(isStandalone()){d.textContent='이미 앱으로 쓰고 있어요.';b.hidden=true;return}
+  if(dip){d.textContent='홈 화면에 앱 아이콘을 만들어요. 앱처럼 전체 화면으로 열려요.';b.hidden=false;return}
+  b.hidden=true;
+  var ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
+  d.textContent=ios?'사파리에서 아래쪽 공유 버튼(네모에 화살표)을 누르고 "홈 화면에 추가"를 고르세요. 크롬이나 앱 안 브라우저에서는 안 보일 수 있어요.':'브라우저 메뉴(점 3개)에서 "앱 설치" 또는 "홈 화면에 추가"를 누르세요. 설치 버튼이 안 보이면 이 방법을 쓰세요.';
+}
+document.getElementById('instbtn').addEventListener('click',function(){
+  if(!dip)return;
+  dip.prompt();
+  dip.userChoice.then(function(){dip=null;updInstall()});
+});
+updInstall();
+window.addEventListener('hashchange',function(){
+  var h=location.hash.replace('#','');
+  if(({today:1,month:1,week:1,routine:1})[h] && S.view!==h){S.view=h;if(h==='today'){S.sel=TK;S.cur=new Date()}render()}
+});
+if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('./planner-sw.js',{scope:'./planner_1.html'}).catch(function(){})});
+}
 var pend=null;
 document.getElementById('gear').addEventListener('click',function(){var s=document.getElementById('set');s.hidden=!s.hidden;this.setAttribute('aria-expanded',String(!s.hidden))});
 document.getElementById('exp').addEventListener('click',async function(){
