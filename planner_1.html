@@ -131,6 +131,7 @@ button{touch-action:manipulation}
 .rgrid.wk thead th.tot{width:46px}
 .rgrid .tot{font-size:12px;color:var(--mute)}
 body[data-v="today"] .nav{display:none}
+.dfold{margin:0 0 10px}.dfold>summary{list-style:none;cursor:pointer;min-height:40px;display:flex;align-items:center;justify-content:space-between;padding:6px 2px;color:var(--mute);font-size:13px;font-weight:700}.dfold>summary::-webkit-details-marker{display:none}.dfold>summary::after{content:"▾";color:var(--acc)}.dfold[open]>summary::after{content:"▴"}.dfold ul{margin:0}
 body[data-v="widget"] .top,body[data-v="widget"] .bar,body[data-v="widget"] #set{display:none}
 .tnote{color:var(--mute);font-size:12px;line-height:1.6;margin:18px 2px 4px}
 @keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
@@ -149,7 +150,7 @@ body[data-v="widget"] .top,body[data-v="widget"] .bar,body[data-v="widget"] #set
 <div id="cf" class="srow" hidden><button class="pb" id="cfy">이 내용으로 바꾸기</button> <button class="pb ghost" id="cfn">취소</button></div>
 <div id="fb" class="srow" hidden><p>파일 저장이 안 될 때는 아래 글자를 모두 복사해서 메모 앱에 붙여 넣어 보관하세요.</p><textarea id="fbt" readonly rows="4" aria-label="백업 내용"></textarea><button class="pb ghost" id="cp">복사</button></div>
 <p id="smsg" class="empty" role="status"></p>
-<p class="empty" style="margin:10px 0 0">앱 버전: 1117-c (월간으로 시작)</p></section>
+<p class="empty" style="margin:10px 0 0">앱 버전: 1117-d (완료 목표 접기)</p></section>
 <div class="bar">
 <div class="tabs" role="group" aria-label="보기 선택"><button data-act="view" data-v="today">오늘</button><button data-act="view" data-v="month">월간</button><button data-act="view" data-v="week">주간</button><button data-act="view" data-v="routine">루틴</button></div>
 <div class="nav"><button class="ib" data-act="prev" aria-label="이전">‹</button><label class="pick"><b id="lab"></b><input type="date" id="dp" aria-label="날짜 선택"></label><button class="ib" data-act="next" aria-label="다음">›</button><button class="ib" data-act="today">오늘로</button></div>
@@ -299,7 +300,14 @@ function sumBar(s,label){var p=s.t?Math.round(s.d/s.t*100):0;return '<div class=
 function dayPanel(k,cls,title){
   var d=title?null:parse(k),L=data[k]||[],s=stat([k]);
   var h='<section class="panel '+(k===TK?'today ':'')+(k<TK?'past ':'')+cls+'"><h2>'+(title||((k<TK?'✕ ':'')+(d.getMonth()+1)+'월 '+d.getDate()+'일 ('+DOW[d.getDay()]+')'))+'<span>'+s.d+'/'+s.t+'</span></h2>';
-  h+=L.length?'<ul>'+L.map(function(x,i){return '<li class="'+(x.d?'done':'')+'"><button class="chk" data-act="tog" data-k="'+k+'" data-i="'+i+'" aria-label="완료 표시">'+(x.d?'✓':'')+'</button><span>'+esc(x.t)+'</span><i class="tag t'+x.c+'">'+CATS[x.c]+'</i><button class="del" data-act="del" data-k="'+k+'" data-i="'+i+'" aria-label="삭제">삭제</button></li>'}).join('')+'</ul>':'<p class="empty">아직 할 일이 없어요. 아래에 적어 보세요.</p>';
+  var isM=/^m\d/.test(k),openR=[],doneR=[];
+  function rowH(x,i){return '<li class="'+(x.d?'done':'')+'"><button class="chk" data-act="tog" data-k="'+k+'" data-i="'+i+'" aria-label="완료 표시">'+(x.d?'✓':'')+'</button><span>'+esc(x.t)+'</span><i class="tag t'+x.c+'">'+CATS[x.c]+'</i><button class="del" data-act="del" data-k="'+k+'" data-i="'+i+'" aria-label="삭제">삭제</button></li>'}
+  L.forEach(function(x,i){(isM&&x.d?doneR:openR).push(rowH(x,i))});
+  if(!L.length)h+='<p class="empty">아직 할 일이 없어요. 아래에 적어 보세요.</p>';
+  else{
+    h+=openR.length?'<ul>'+openR.join('')+'</ul>':'<p class="empty">남은 목표가 없어요. 모두 끝냈어요!</p>';
+    if(doneR.length)h+='<details class="dfold"'+(S.dopen?' open':'')+'><summary>완료한 목표 '+doneR.length+'개</summary><ul>'+doneR.join('')+'</ul></details>';
+  }
   h+='<div class="add"><input data-k="'+k+'" placeholder="할 일 입력" maxlength="80" aria-label="할 일 입력"><select data-k="'+k+'" aria-label="분류">'+ORDER.map(function(i){return '<option value="'+i+'">'+CATS[i]+'</option>'}).join('')+'</select><button data-act="add" data-k="'+k+'">추가</button></div></section>';
   return h}
 function mfold(y,m){var k='m'+y+'-'+String(m+1).padStart(2,'0'),s=stat([k]);return '<details class="fold"'+(S.mopen?' open':'')+'><summary>'+(m+1)+'월 할 일 ('+s.d+'/'+s.t+')</summary>'+dayPanel(k,'mlist',(m+1)+'월 할 일 (이번 달 목표)')+'</details>'}
@@ -460,7 +468,7 @@ function backupText(){return JSON.stringify({app:'planner',v:1,exported:new Date
 function smsg(t){document.getElementById('smsg').textContent=t}
 function showFb(txt){var t=document.getElementById('fbt');t.value=txt;document.getElementById('fb').hidden=false}
 function clean(txt){try{var o=JSON.parse(txt);if(!o||o.app!=='planner'||!o.data||typeof o.data!=='object')return null;var out={};Object.keys(o.data).forEach(function(k){if(!/^(\d{4}-\d\d-\d\d|[mw]\d{4}-\d\d(-\d\d)?|r\d{4}-\d\d-\d\d|rt)$/.test(k)||!Array.isArray(o.data[k]))return;var L=o.data[k].filter(function(x){return x&&typeof x.t==='string'&&x.t.trim()}).map(function(x){var c=+x.c;return{t:x.t.slice(0,80),c:(c>=0&&c<=4)?Math.floor(c):4,d:!!x.d}});if(L.length)out[k]=L});return out}catch(e){return null}}
-document.addEventListener('toggle',function(e){if(e.target.classList&&e.target.classList.contains('fold'))S.mopen=e.target.open},true);
+document.addEventListener('toggle',function(e){var c=e.target.classList;if(!c)return;if(c.contains('fold'))S.mopen=e.target.open;else if(c.contains('dfold'))S.dopen=e.target.open},true);
 var dip=null;
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dip=e;updInstall()});
 window.addEventListener('appinstalled',function(){dip=null;updInstall()});
