@@ -62,7 +62,7 @@ details summary{cursor:pointer;color:var(--sub);padding:4px 0}
 .h.on{border-color:var(--pri)}
 .h>span:first-child{min-width:0;flex:1}
 .h .acts{display:flex;gap:4px;flex:none;overflow:visible}
-.h .acts button{padding:5px 8px}
+.h .acts button{padding:5px 6px}
 .h button.on:not(.pri){color:#f5b301;border-color:#f5b301}
 .h span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .back{display:none}
@@ -135,7 +135,7 @@ function rList(){
   ${!s?'<div class="empty">먼저 과목을 추가하세요<br>(예: 국어, 해부학, 한국사)</div>':`
   <div class="card"><div class="row sp"><b>${esc(s.name)}</b><span><button data-a="rensub">이름</button> <button class="dng" data-a="delsub">삭제</button></span></div></div>
   <div class="card">${s.ch.length?s.ch.map(c=>`<div class="ch ${c.id===view.ch?'on':''}" data-a="open" data-id="${c.id}" style="padding-left:${8+c.d*14}px"><span>${c.d?'<small class="sub">└ </small>':''}${esc(c.t)}</span><span class="row" style="flex-wrap:nowrap;gap:6px"><small>${c.f.length?'📎'+c.f.length:''}${c.s?' ✍':''}</small>${c.f.length?`<button class="pl" data-a="exp" data-id="${c.id}" title="펼쳐서 최신 자료 보기">${expanded.has(c.id)?'▴':'▾'}</button>`:''}${quickF(c)?`<button class="pl ${playing===c.id?'pri':''}" data-a="play" data-id="${c.id}" data-pl="${c.id}" title="최신 녹음 재생/정지">${playing===c.id?'❚❚':'▶'}</button>`:''}${s.ch.length>1?'<span class="gr" title="끌어서 순서 변경">⠿</span>':''}</span></div>${expanded.has(c.id)?`<div class="xp" data-xp="${c.id}"></div>`:''}`).join(''):'<div class="empty">목차를 추가해보세요</div>'}${s.ch.length>1?'<div class="sub" style="padding:6px 8px 0">💡 목차를 꾹 눌렀다 떼면 메뉴(하위로·상위로 등), 꾹 누른 채 끌면 순서 변경 (오른쪽 ⠿ 로도 끌 수 있어요) </div>':''}</div>
-  <div class="card"><div class="row sp"><b>🖼 목차 이미지</b><button data-a="addimg">+ 이미지 추가</button></div>${(s.im||[]).length?s.im.map(i=>`<div class="im"><img data-a="zoom" data-im="${i.id}" alt="${esc(i.n)}"><div class="row sp"><small class="sub">${esc(i.n)}</small><span><button data-a="dlf" data-id="${i.id}" title="다운로드">⬇</button> <button class="dng" data-a="delimg" data-id="${i.id}">✕</button></span></div></div>`).join(''):'<div class="sub" style="margin-top:6px">교재 목차 사진을 올려두고 보면서 공부하세요.</div>'}</div>
+  <div class="card"><div class="row sp"><b>🖼 목차 이미지</b><button data-a="addimg">+ 이미지 추가</button></div>${(s.im||[]).length?s.im.map(i=>`<div class="im"><img data-a="zoom" data-im="${i.id}" alt="${esc(i.n)}"><div class="row sp"><small class="sub">${esc(i.n)}</small><span><button data-a="renf" data-id="${i.id}" title="이름 변경">✏</button> <button data-a="dlf" data-id="${i.id}" title="다운로드">⬇</button> <button class="dng" data-a="delimg" data-id="${i.id}">✕</button></span></div></div>`).join(''):'<div class="sub" style="margin-top:6px">교재 목차 사진을 올려두고 보면서 공부하세요.</div>'}</div>
   <div class="card"><div class="row"><input id="q" placeholder="목차 입력 후 Enter (하위는 > 또는 공백 2칸)"><button class="pri" data-a="addch">추가</button></div>
   <details open><summary>여러 개 붙여넣기 · 파일로 불러오기</summary>
   <label>한 줄에 하나씩 (앞에 공백/탭 2칸 = 소단원)</label>
@@ -174,7 +174,7 @@ function rDet(){
   rHist();pv();
 }
 function rHist(){const c=ch(),h=$('#hist');if(!h||!c)return;
-  const last=c.f[c.f.length-1];h.innerHTML=c.f.length?sortF(c).map(f=>`<div class="h ${f.id===view.sel?'on':''}" data-a="sel" data-id="${f.id}"><span>${icon(f.m)} ${esc(f.n)} <small class="sub">· ${fdate(f.at)}${f===last?' · 최신':''}${c.main===f.id?' · 📌메인':''}</small></span><span class="acts"><button class="${f.fav?'on':''}" data-a="fav" data-id="${f.id}" title="즐겨찾기">${f.fav?'★':'☆'}</button> <button class="${c.main===f.id?'pri':''}" data-a="main" data-id="${f.id}" title="목차 화면에서 재생할 파일로 지정">📌</button> <button data-a="dlf" data-id="${f.id}" title="저장">⬇</button> <button class="dng" data-a="delf" data-id="${f.id}">✕</button></span></div>`).join(''):''}
+  const last=c.f[c.f.length-1];h.innerHTML=c.f.length?sortF(c).map(f=>`<div class="h ${f.id===view.sel?'on':''}" data-a="sel" data-id="${f.id}"><span>${icon(f.m)} ${esc(f.n)} <small class="sub">· ${fdate(f.at)}${f===last?' · 최신':''}${c.main===f.id?' · 📌메인':''}</small></span><span class="acts"><button class="${f.fav?'on':''}" data-a="fav" data-id="${f.id}" title="즐겨찾기">${f.fav?'★':'☆'}</button> <button class="${c.main===f.id?'pri':''}" data-a="main" data-id="${f.id}" title="목차 화면에서 재생할 파일로 지정">📌</button> <button data-a="renf" data-id="${f.id}" title="이름 변경">✏</button> <button data-a="dlf" data-id="${f.id}" title="저장">⬇</button> <button class="dng" data-a="delf" data-id="${f.id}">✕</button></span></div>`).join(''):''}
 async function pv(){const c=ch(),box=$('#pv');if(!box||!c)return;
   if(urlCur){URL.revokeObjectURL(urlCur);urlCur=null}
   if(!c.f.length){box.innerHTML='<div class="empty">아직 자료가 없어요. 녹음하거나 파일을 올려보세요.</div>';return}
@@ -423,6 +423,7 @@ document.addEventListener('click',async e=>{
   else if(a==='edit')openEdit();
   else if(a==='edapply2'){applyEdit($('#ed2').value,true)}
   else if(a==='edreset'){rList();toast('현재 목차로 되돌렸어요')}
+  else if(a==='renf'){e.stopPropagation();const f=allF().find(x=>x.id===id);if(f){const n=await dlg({t:'파일 이름 변경',i:f.n,ok:'변경'});if(n){f.n=n;await persist();rList();rHist();pv();toast('이름이 바뀌었어요')}}}
   else if(a==='edapply'){const txt=$('#ed').value;$('#modal2').innerHTML='';applyEdit(txt)}
   else if(a==='noop'){}
   else if(a==='m_open'){$('#modal2').innerHTML='';view={ch:id,sel:null};rList();rDet();scrollTo(0,0)}
