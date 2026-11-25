@@ -169,7 +169,7 @@ li.ed select{flex:1;min-height:40px;border:1px solid var(--line);background:var(
 <div id="cf" class="srow" hidden><button class="pb" id="cfy">이 내용으로 바꾸기</button> <button class="pb ghost" id="cfn">취소</button></div>
 <div id="fb" class="srow" hidden><p>파일 저장이 안 될 때는 아래 글자를 모두 복사해서 메모 앱에 붙여 넣어 보관하세요.</p><textarea id="fbt" readonly rows="4" aria-label="백업 내용"></textarea><button class="pb ghost" id="cp">복사</button></div>
 <p id="smsg" class="empty" role="status"></p>
-<p class="empty" style="margin:10px 0 0">앱 버전: 1122-a (순위 묶음·수정)</p></section>
+<p class="empty" style="margin:10px 0 0">앱 버전: 1122-b (추가할 때 순위 선택)</p></section>
 <div class="bar">
 <div class="tabs" role="group" aria-label="보기 선택"><button data-act="view" data-v="today">오늘</button><button data-act="view" data-v="month">월간</button><button data-act="view" data-v="week">주간</button><button data-act="view" data-v="routine">루틴</button></div>
 <div class="nav"><button class="ib" data-act="prev" aria-label="이전">‹</button><label class="pick"><b id="lab"></b><input type="date" id="dp" aria-label="날짜 선택"></label><button class="ib" data-act="next" aria-label="다음">›</button><button class="ib" data-act="today">오늘로</button></div>
@@ -267,10 +267,10 @@ function renderKeep(){
   var fk = (ae && ae.matches && ae.matches('.add input')) ? ae.dataset.k : null;
   var ss = fk ? ae.selectionStart : 0;
   document.querySelectorAll('.add input').forEach(function(i){ if(i.value) vals[i.dataset.k] = i.value; });
-  document.querySelectorAll('.add select').forEach(function(s){ sels[s.dataset.k] = s.value; });
+  document.querySelectorAll('.add select').forEach(function(s){ sels[s.dataset.k || ('rk:'+s.dataset.rk)] = s.value; });
   render();
   document.querySelectorAll('.add input').forEach(function(i){ if(vals[i.dataset.k] != null) i.value = vals[i.dataset.k]; });
-  document.querySelectorAll('.add select').forEach(function(s){ if(sels[s.dataset.k] != null) s.value = sels[s.dataset.k]; });
+  document.querySelectorAll('.add select').forEach(function(s){ var kk = s.dataset.k || ('rk:'+s.dataset.rk); if(sels[kk] != null) s.value = sels[kk]; });
   var e2 = document.getElementById('ein'); if(e2 && evv != null){ e2.value = evv; if(evf) focusEdit(); }
   if(fk){
     var n = document.querySelector('.add input[data-k="'+fk+'"]');
@@ -319,7 +319,7 @@ function viewFromHash(h){h=h.replace('#','');var M={'go-today':'today','go-month
 (function(){var v0=viewFromHash(location.hash);if(v0)S.view=v0;})();
 function stat(keys){var t=0,d=0;keys.forEach(function(k){(data[k]||[]).forEach(function(x){t++;if(x.d)d++})});return{t:t,d:d}}
 function sumBar(s,label){var p=s.t?Math.round(s.d/s.t*100):0;return '<div class="sum"><span>'+label+' '+s.d+'/'+s.t+'개 완료</span><div class="pg"><i style="width:'+p+'%"></i></div><span>'+p+'%</span></div>'}
-var RMODE='rank',RREV=false;
+var RMODE='rank',RREV=false,RADD='';
 try{var ru=JSON.parse(localStorage.getItem('planner-rankui')||'{}');if(ru.m)RMODE=ru.m;RREV=!!ru.r}catch(e){}
 function rkSaveUi(){try{localStorage.setItem('planner-rankui',JSON.stringify({m:RMODE,r:RREV}))}catch(e){}}
 function saveEdit(k,i){
@@ -371,7 +371,14 @@ function dayPanel(k,cls,title){
     }
     if(dn.length)h+='<details class="dfold"'+(S.dopen?' open':'')+'><summary>완료한 목표 '+dn.length+'개</summary>'+rows(dn)+'</details>';
   }
-  h+='<div class="add"><input data-k="'+k+'" placeholder="할 일 입력" maxlength="80" aria-label="할 일 입력"><select data-k="'+k+'" aria-label="분류">'+ORDER.map(function(i){return '<option value="'+i+'">'+CATS[i]+'</option>'}).join('')+'</select><button data-act="add" data-k="'+k+'">추가</button></div></section>';
+  var rsel='';
+  if(isM){
+    var mx2=0;L.forEach(function(y){if(!y.d&&y.pr>mx2)mx2=y.pr});
+    var topA=Math.min(9,Math.max(3,mx2+1,+RADD||0)),ro='<option value="">순위 없음</option>';
+    for(var n2=1;n2<=topA;n2++)ro+='<option value="'+n2+'"'+(String(RADD)===String(n2)?' selected':'')+'>'+n2+'순위</option>';
+    rsel='<select data-rk="'+k+'" aria-label="순위">'+ro+'</select>';
+  }
+  h+='<div class="add"><input data-k="'+k+'" placeholder="할 일 입력" maxlength="80" aria-label="할 일 입력"><select data-k="'+k+'" aria-label="분류">'+ORDER.map(function(i){return '<option value="'+i+'">'+CATS[i]+'</option>'}).join('')+'</select>'+rsel+'<button data-act="add" data-k="'+k+'">추가</button></div></section>';
   return h}
 function mfold(y,m){var k='m'+y+'-'+String(m+1).padStart(2,'0'),s=stat([k]);return '<details class="fold"'+(S.mopen?' open':'')+'><summary>'+(m+1)+'월 할 일 ('+s.d+'/'+s.t+')</summary>'+dayPanel(k,'mlist',(m+1)+'월 할 일 (이번 달 목표)')+'</details>'}
 function wlist(ks){return dayPanel('w'+ks[0],'mlist',ks.indexOf(TK)>=0?'이번 주 할 일':'이 주 할 일')}
@@ -505,7 +512,9 @@ function add(k){
   var inp=document.querySelector('input[data-k="'+k+'"]'),sel=document.querySelector('select[data-k="'+k+'"]'),t=inp.value.trim();
   if(!t){inp.focus();return}
   if(k==='rt'&&(data.rt||[]).some(function(x){return x.t===t})){inp.select();return}
-  (data[k]=data[k]||[]).push({t:t,c:+sel.value,d:false,at:Date.now()});save();render();
+  var nx={t:t,c:+sel.value,d:false,at:Date.now()},rs=document.querySelector('select[data-rk="'+k+'"]');
+  if(rs){RADD=rs.value;if(rs.value)nx.pr=+rs.value}
+  (data[k]=data[k]||[]).push(nx);save();render();
   var n=document.querySelector('input[data-k="'+k+'"]');if(n)n.focus()}
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b)return;var a=b.dataset.act,k=b.dataset.k,i=+b.dataset.i;
